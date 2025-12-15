@@ -26,7 +26,7 @@
         <a href="../dashboard_arzu/index.html" class="nav-link active">Dashboard</a>
         <a href="../informations_and_facilities_rifki/index.html" class="nav-link">Informasi & Fasilitas</a>
         <a href="#" class="nav-link">Manajemen Keuangan</a>
-        <a href="../staff_aryo/index.html" class="nav-link">Staff</a>
+        <a href="/staff" class="nav-link">Staff</a>
         <a href="../member_gym_bintang/index.html" class="nav-link">Anggota Gym</a>
       </nav>
     </div>
