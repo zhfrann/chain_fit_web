@@ -3,25 +3,23 @@
     <div class="q-mb-md text-h5 text-weight-bold">Staff</div>
 
     <q-card flat class="rounded-borders shadow-1">
-      <q-card-section>
-        <div class="text-h6 q-mb-md">Staff List</div>
+      <q-card-section class="q-pa-lg">
+        <div class="text-h6 text-weight-bold q-mb-md">Staff List</div>
 
         <div class="row q-col-gutter-md q-mb-lg items-center">
-          <div class="col-12 col-sm-8">
-            <q-input outlined dense v-model="filter" placeholder="Search staff by name or email...">
+          <div class="col-12 col-sm-9">
+            <q-input outlined dense v-model="filter" placeholder="Search..." class="bg-white">
               <template v-slot:append>
                 <q-icon name="search" />
               </template>
             </q-input>
           </div>
-          <div class="col-12 col-sm-4 text-right">
+          <div class="col-12 col-sm-3 text-right">
             <q-btn
               unelevated
-              color="slate-dark"
+              class="full-width btn-dark-custom"
               label="Tambah"
-              class="full-width-sm btn-dark-custom"
-              icon="add"
-              @click="addStaff"
+              @click="addMember"
             />
           </div>
         </div>
@@ -32,27 +30,24 @@
           :columns="columns"
           row-key="id"
           :filter="filter"
-          binary-state-sort
-          class="staff-table"
-          :pagination="initialPagination"
+          class="member-table"
+          :pagination="{ rowsPerPage: 10 }"
         >
           <template v-slot:body-cell-actions="props">
             <q-td :props="props" class="text-right">
               <q-btn
                 unelevated
                 dense
-                color="slate-dark"
                 label="Edit"
-                class="q-px-md q-mr-sm btn-dark-custom"
-                @click="editStaff(props.row)"
+                class="btn-edit q-px-md q-mr-sm"
+                @click="editMember(props.row)"
               />
               <q-btn
                 unelevated
                 dense
-                color="negative"
                 label="Hapus"
-                class="q-px-md"
-                @click="deleteStaff(props.row)"
+                class="btn-delete q-px-md"
+                @click="deleteMember(props.row)"
               />
             </q-td>
           </template>
@@ -69,7 +64,6 @@ import { useQuasar } from 'quasar'
 const $q = useQuasar()
 const filter = ref('')
 
-// Table Setup
 const columns = [
   { name: 'nama', align: 'left', label: 'Nama', field: 'nama', sortable: true },
   { name: 'email', align: 'left', label: 'Email', field: 'email', sortable: true },
@@ -84,83 +78,84 @@ const rows = ref([
   { id: 5, nama: 'Joko', email: 'joko@gmail.com' },
 ])
 
-const initialPagination = {
-  rowsPerPage: 10,
-}
-
-// Logic: Add Staff
-const addStaff = () => {
+// Functions
+const addMember = () => {
   $q.dialog({
-    title: 'Tambah Staff',
-    message: 'Masukkan data staff baru:',
-    prompt: { model: '', type: 'text', isValid: (val) => val.length > 2 }, // Simple validation
+    title: 'Tambah Anggota',
+    message: 'Masukkan nama anggota baru:',
+    prompt: { model: '', type: 'text' },
     cancel: true,
     persistent: true,
   }).onOk((name) => {
-    const email = name.toLowerCase().replace(' ', '') + '@gmail.com'
-    rows.value.push({
-      id: Date.now(),
-      nama: name,
-      email: email,
-    })
+    if (name) {
+      rows.value.push({
+        id: Date.now(),
+        nama: name,
+        email: name.toLowerCase().replace(' ', '') + '@gmail.com',
+      })
+    }
   })
 }
 
-// Logic: Edit Staff
-const editStaff = (staff) => {
+const editMember = (member) => {
   $q.dialog({
-    title: 'Edit Staff',
-    message: `Edit nama untuk ${staff.email}:`,
-    prompt: { model: staff.nama, type: 'text' },
+    title: 'Edit Anggota',
+    message: `Ubah nama untuk ${member.email}:`,
+    prompt: { model: member.nama, type: 'text' },
     cancel: true,
   }).onOk((newName) => {
-    const index = rows.value.findIndex((r) => r.id === staff.id)
-    if (index > -1) rows.value[index].nama = newName
+    const target = rows.value.find((r) => r.id === member.id)
+    if (target) target.nama = newName
   })
 }
 
-// Logic: Delete Staff
-const deleteStaff = (staff) => {
+const deleteMember = (member) => {
   $q.dialog({
-    title: 'Konfirmasi',
-    message: `Apakah Anda yakin ingin menghapus ${staff.nama}?`,
+    title: 'Hapus Anggota',
+    message: `Apakah Anda yakin ingin menghapus ${member.nama}?`,
     cancel: true,
-    color: 'negative',
+    ok: { color: 'negative', label: 'Hapus' },
   }).onOk(() => {
-    rows.value = rows.value.filter((r) => r.id !== staff.id)
-    $q.notify({ message: 'Staff dihapus', color: 'orange' })
+    rows.value = rows.value.filter((r) => r.id !== member.id)
   })
 }
 </script>
 
 <style lang="scss" scoped>
-// Match your theme colors
-.bg-slate-dark {
-  background-color: #0f172a !important;
-}
-
 .btn-dark-custom {
-  background-color: #0f172a !important;
+  background-color: #0f172a;
   color: white;
   border-radius: 6px;
   text-transform: none;
+  font-weight: 600;
+  height: 40px;
 }
 
-.staff-table {
-  /* Remove border from the table itself since it's inside a card */
-  .q-table__card {
-    box-shadow: none;
-  }
+.btn-edit {
+  background-color: #0f172a;
+  color: white;
+  text-transform: none;
+  border-radius: 6px;
+}
 
-  th {
+.btn-delete {
+  background-color: #dc2626;
+  color: white;
+  text-transform: none;
+  border-radius: 6px;
+}
+
+.member-table {
+  background: transparent;
+
+  :deep(thead tr th) {
     font-weight: bold;
-    color: #64748b;
+    color: #1e293b;
+    border-bottom: 1px solid #e2e8f0;
   }
-}
 
-@media (max-width: 600px) {
-  .full-width-sm {
-    width: 100%;
+  :deep(tbody tr td) {
+    color: #334155;
   }
 }
 </style>
