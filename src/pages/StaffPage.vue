@@ -4,7 +4,7 @@
 
     <q-card flat class="rounded-borders shadow-1">
       <q-card-section class="q-pa-lg">
-        <div class="text-h6 text-weight-bold q-mb-md">Staff List</div>
+        <div class="text-h6 text-center text-weight-bold q-mb-md">Staff</div>
 
         <div class="row q-col-gutter-md q-mb-lg items-center">
           <div class="col-12 col-sm-9">
@@ -76,6 +76,11 @@ const rows = ref([
   { id: 3, nama: 'Siti', email: 'sity@gmail.com' },
   { id: 4, nama: 'Akmal', email: 'akmal@gmail.com' },
   { id: 5, nama: 'Joko', email: 'joko@gmail.com' },
+  { id: 1, nama: 'Budi', email: 'budi@gmail.com' },
+  { id: 2, nama: 'Dodit', email: 'dodit@gmail.com' },
+  { id: 3, nama: 'Siti', email: 'sity@gmail.com' },
+  { id: 4, nama: 'Akmal', email: 'akmal@gmail.com' },
+  { id: 5, nama: 'Joko', email: 'joko@gmail.com' },
 ])
 
 // Functions
@@ -132,7 +137,7 @@ const deleteMember = (member) => {
 }
 
 .btn-edit {
-  background-color: #0f172a;
+  background-color: #2563eb;
   color: white;
   text-transform: none;
   border-radius: 6px;
