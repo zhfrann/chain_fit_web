@@ -11,22 +11,22 @@ const routes = [
     children: [
       {
         path: 'dashboard',
-        component: () => import('pages/DashboardPage.vue'),
+        component: () => import('pages/dashboard/DashboardPage.vue'),
         meta: { title: 'Dashboard' },
       },
       {
         path: 'staff',
-        component: () => import('pages/StaffPage.vue'),
+        component: () => import('pages/staff/StaffPage.vue'),
         meta: { title: 'Staff' },
       },
       {
         path: 'members',
-        component: () => import('pages/MemberPage.vue'),
+        component: () => import('pages/anggota/MemberPage.vue'),
         meta: { title: 'Anggota Gym' },
       }, // Add this
       {
         path: 'info',
-        component: () => import('pages/InfoFacilityPage.vue'),
+        component: () => import('pages/informasiFasilitas/InfoFacilityPage.vue'),
         meta: { title: 'Informasi & Fasilitas' },
       },
     ],
@@ -34,12 +34,12 @@ const routes = [
 
   {
     path: '/login',
-    component: () => import('pages/LoginPage.vue'),
+    component: () => import('pages/login/LoginPage.vue'),
   },
 
   {
     path: '/register',
-    component: () => import('pages/RegisterPage.vue'),
+    component: () => import('pages/register/RegisterPage.vue'),
   },
 
   // Always leave this as last one,
@@ -57,7 +57,7 @@ const routes = [
 
   {
     path: '/:catchAll(.*)*',
-    component: () => import('pages/ErrorNotFound.vue'),
+    component: () => import('pages/error/ErrorNotFound.vue'),
   },
 ]
 
