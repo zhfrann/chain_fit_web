@@ -12,6 +12,7 @@
               <q-input
                 outlined
                 v-model="form.nama"
+                placeholder="Masukkan nama lengkap"
                 dense
                 class="custom-input"
               />
@@ -21,6 +22,7 @@
               <q-input
                 outlined
                 v-model="form.username"
+                placeholder="Masukkan username"
                 dense
                 class="custom-input"
               />
@@ -30,6 +32,7 @@
               <q-input
                 outlined
                 v-model="form.email"
+                placeholder="Masukkan email aktif"
                 dense
                 class="custom-input"
               />
@@ -40,6 +43,7 @@
                 outlined
                 type="password"
                 v-model="form.password"
+                placeholder="Masukkan password (min. 6 karakter)"
                 dense
                 class="custom-input"
               />

@@ -18,7 +18,7 @@
                 <q-icon name="search" size="xs" />
               </template>
             </q-input>
-          </div>ƒ
+          </div>
           <div class="col-auto">
             <q-btn
               unelevated
@@ -165,10 +165,19 @@ const addMember = () => {
   router.push('/staff/tambah')
 }
 
+// changed: navigate to edit route with id param and also send data via query so Edit page can prefill
 const editMember = (member) => {
   if (!member) return
-  // placeholder: open edit form/dialog or navigate to edit page later
-  $q.notify({ type: 'info', message: `Edit anggota: ${member.nama}` })
+  // navigate to edit page with the staff id
+  router.push({
+    path: `/staff/edit/${member.id}`,
+    query: {
+      nama: member.nama,
+      username: member.username,
+      email: member.email,
+      avatarUrl: member.avatarUrl
+    }
+  })
 }
 
 const deleteMember = (member) => {

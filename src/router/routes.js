@@ -24,6 +24,11 @@ const routes = [
         component: () => import('pages/staff/TambahStaffPage.vue')
       },
       {
+        path: 'staff/edit/:id',
+        component: () => import('pages/staff/EditStaffPage.vue'),
+      }, // <-- ensure comma here
+
+      {
         path: 'members',
         component: () => import('pages/anggota/MemberPage.vue'),
         meta: { title: 'Anggota Gym' },
