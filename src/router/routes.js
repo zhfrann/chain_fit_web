@@ -9,6 +9,7 @@ const routes = [
     path: '/',
     component: () => import('layouts/MainLayout.vue'), // The base layout
     children: [
+      { path: '', component: () => import('pages/IndexPage.vue') }, // added default index
       {
         path: 'dashboard',
         component: () => import('pages/dashboard/DashboardPage.vue'),
@@ -26,13 +27,21 @@ const routes = [
       {
         path: 'staff/edit/:id',
         component: () => import('pages/staff/EditStaffPage.vue'),
-      }, // <-- ensure comma here
+      },
 
+      // changed: use 'anggota' route (list) instead of 'members'
       {
-        path: 'members',
+        path: 'anggota',
         component: () => import('pages/anggota/MemberPage.vue'),
         meta: { title: 'Anggota Gym' },
-      }, // Add this
+      },
+
+      // kept/added: tambah anggota
+      {
+        path: 'anggota/tambah',
+        component: () => import('pages/anggota/TambahMemberPage.vue')
+      },
+
       {
         path: 'info',
         component: () => import('pages/informasiFasilitas/InfoFacilityPage.vue'),
