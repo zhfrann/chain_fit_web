@@ -45,6 +45,11 @@ const routes = [
         meta: { title: 'Informasi & Fasilitas' },
       },
       {
+        path: 'info/alat/tambah',
+        component: () => import('pages/alat/TambahAlatGymPage.vue'),
+        meta: { title: 'Tambah Alat Gym' },
+      },
+      {
         path: 'info/alat/:id',
         component: () => import('pages/alat/DetailAlatGymPage.vue'),
         meta: { title: 'Detail Alat Gym' },

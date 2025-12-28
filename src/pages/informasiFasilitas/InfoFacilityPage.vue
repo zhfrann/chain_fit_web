@@ -112,7 +112,7 @@
             </q-input>
           </div>
           <div class="col-auto">
-            <q-btn unelevated label="Tambah" no-caps class="btn-tambah q-px-xl text-weight-bold" />
+            <q-btn unelevated label="Tambah" no-caps class="btn-tambah q-px-xl text-weight-bold" @click="goToTambahAlat" />
           </div>
         </div>
 
@@ -151,7 +151,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
@@ -191,10 +191,27 @@ const columns = [
   { name: 'actions', label: '', field: 'actions', align: 'right' },
 ]
 
-const equipments = ref([
+// changed: make equipments reactive and load from localStorage
+const equipments = ref([])
+
+const defaultEquipments = [
   { id: 1, name: 'Alat 1', qty: 25 },
   { id: 2, name: 'Alat 2', qty: 25 },
-])
+]
+
+onMounted(() => {
+  try {
+    const raw = localStorage.getItem('equipments')
+    if (raw) {
+      equipments.value = JSON.parse(raw)
+    } else {
+      equipments.value = defaultEquipments
+      localStorage.setItem('equipments', JSON.stringify(defaultEquipments))
+    }
+  } catch (e) {
+    equipments.value = defaultEquipments
+  }
+})
 
 const addPlan = () => {
   console.log('Tambah Paket Clicked')
@@ -202,6 +219,11 @@ const addPlan = () => {
 
 const editInfo = () => {
   router.push('/info/edit')
+}
+
+// new: navigate to add-equipment page
+const goToTambahAlat = () => {
+  router.push('/info/alat/tambah')
 }
 
 const goToDetail = (id) => {
