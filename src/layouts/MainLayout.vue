@@ -140,7 +140,7 @@ const menuLinks = [
   { title: 'Informasi & Fasilitas', icon: 'info', to: '/info' },
   { title: 'Manajemen Keuangan', icon: 'payments', to: '/finance' },
   { title: 'Staff', icon: 'people', to: '/staff' },
-  { title: 'Anggota Gym', icon: 'sentiment_satisfied_alt', to: '/members' },
+  { title: 'Anggota Gym', icon: 'sentiment_satisfied_alt', to: '/anggota' },
 ]
 </script>
 

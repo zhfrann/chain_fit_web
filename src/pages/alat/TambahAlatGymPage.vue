@@ -75,6 +75,13 @@
         <div class="row justify-end">
           <q-btn
             unelevated
+            label="Batal"
+            no-caps
+            class="btn-batal q-px-lg q-mr-sm"
+            @click="goBack"
+          />
+          <q-btn
+            unelevated
             label="Tambah"
             color="black"
             class="q-px-xl text-weight-bold btn-submit"
@@ -160,6 +167,11 @@ const submitEquipment = () => {
     })
   }
 }
+
+// New: go back/cancel action
+const goBack = () => {
+  router.back()
+}
 </script>
 
 <style scoped lang="scss">
@@ -201,6 +213,17 @@ const submitEquipment = () => {
 .btn-submit {
   border-radius: 8px;
   height: 40px;
+}
+
+/* New cancel button style */
+.btn-batal {
+  background-color: #e53935;
+  color: white;
+  border-radius: 8px;
+  height: 40px;
+  min-width: 100px;
+  font-weight: bold;
+  text-transform: none;
 }
 
 .text-subtitle1 {
