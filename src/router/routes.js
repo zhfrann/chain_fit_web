@@ -44,6 +44,13 @@ const routes = [
         component: () => import('pages/informasiFasilitas/InfoFacilityPage.vue'),
         meta: { title: 'Informasi & Fasilitas' },
       },
+      {
+        // unique edit path and correct component file
+        path: 'info/edit',
+        name: 'gym-edit',
+        component: () => import('pages/informasiFasilitas/EditInfoFacilityPage.vue'),
+        meta: { title: 'Edit Informasi & Fasilitas' }
+      }
     ],
   },
 

@@ -4,7 +4,7 @@
       <q-card-section>
         <div  class="row items-center justify-between q-mb-lg">
           <div class="text-h5 text-weight-bold">Nama Gym</div>
-          <q-btn unelevated label="Edit" no-caps class="btn-edit q-px-lg" />
+          <q-btn unelevated label="Edit" no-caps class="btn-edit q-px-lg" @click="editInfo" />
         </div>
 
         <div class="q-gutter-y-md">
@@ -146,7 +146,9 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const search = ref('')
 const tags = ['Pilates', 'Sauna', 'GymBro']
 
@@ -190,6 +192,10 @@ const equipments = ref([
 
 const addPlan = () => {
   console.log('Tambah Paket Clicked')
+}
+
+const editInfo = () => {
+  router.push('/info/edit')
 }
 </script>
 
