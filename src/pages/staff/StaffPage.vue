@@ -3,7 +3,7 @@
 
     <q-card flat class="rounded-borders shadow-1 custom-card">
       <q-card-section class="q-pa-xl">
-        <div class="text-h5 text-center text-weight-bolder q-mb-xl">Staff</div>
+        <div class="text-h5 text-center text-weight-bolder q-mb-xl">Staff Gym</div>
 
         <div class="row q-col-gutter-md q-mb-lg items-center">
           <div class="col">
@@ -18,7 +18,7 @@
                 <q-icon name="search" size="xs" />
               </template>
             </q-input>
-          </div>
+          </div>ƒ
           <div class="col-auto">
             <q-btn
               unelevated
@@ -80,8 +80,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useQuasar } from 'quasar'
+import { useRouter } from 'vue-router'
 
 const $q = useQuasar()
+const router = useRouter()
 const filter = ref('')
 
 const columns = [
@@ -159,8 +161,8 @@ const rows = ref([
 
 // Functions (simple, working implementations)
 const addMember = () => {
-  // placeholder: open form/dialog or navigate to add page later
-  $q.notify({ type: 'info', message: 'Tambah anggota (placeholder)' })
+  // navigate to add-staff page
+  router.push('/staff/tambah')
 }
 
 const editMember = (member) => {

@@ -20,6 +20,10 @@ const routes = [
         meta: { title: 'Staff' },
       },
       {
+        path: 'staff/tambah',
+        component: () => import('pages/staff/TambahStaffPage.vue')
+      },
+      {
         path: 'members',
         component: () => import('pages/anggota/MemberPage.vue'),
         meta: { title: 'Anggota Gym' },
