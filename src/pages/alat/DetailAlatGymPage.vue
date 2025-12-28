@@ -160,8 +160,8 @@ const editEquipment = () => {
     $q.notify({ message: 'ID alat tidak tersedia', color: 'negative' })
     return
   }
-  // navigate to edit page and pass id as query (Edit page can read query or params)
-  router.push({ path: '/info/edit', query: { id: equipment.id } })
+  // navigate to the edit route for this equipment id
+  router.push({ path: `/info/alat/edit/${equipment.id}` })
 }
 
 const deleteEquipment = () => {

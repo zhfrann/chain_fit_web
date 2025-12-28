@@ -55,6 +55,11 @@ const routes = [
         meta: { title: 'Detail Alat Gym' },
       },
       {
+        path: 'info/alat/edit/:id',
+        component: () => import('pages/alat/EditAlatGymPage.vue'),
+        meta: { title: 'Edit Alat Gym' },
+      },
+      {
         path: 'info/edit',
         component: () => import('pages/informasiFasilitas/EditInfoFacilityPage.vue'),
         meta: { title: 'Edit Informasi & Fasilitas' },
