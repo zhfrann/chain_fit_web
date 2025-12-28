@@ -23,17 +23,19 @@
           :filter="filterAnggota"
           class="custom-table"
           hide-bottom
-          :pagination="{ rowsPerPage: 10 }" <!-- safe default -->
+          :pagination="{ rowsPerPage: 10 }"
         >
           <template v-slot:body-cell-status="props">
             <q-td :props="props">
-              <q-chip dense text-color="white" :class="props.value === 'Aktif' ? 'bg-positive' : 'bg-negative'" class="status-chip" :label="props.value" />
+              <q-chip dense text-color="white" :class="props.value === 'Aktif' ? 'bg-positive' : 'bg-negative'" class="status-chip">
+                {{ props.value }}
+              </q-chip>
             </q-td>
           </template>
 
           <template v-slot:body-cell-masaAktif="props">
             <q-td :props="props">
-              <q-chip dense :class="getMasaAktifClass(props.value)" class="masa-aktif-chip" icon="fiber_manual_record">
+              <q-chip dense :class="getMasaAktifClass(props.value)" class="masa-aktif-chip">
                 {{ props.value }} hari
               </q-chip>
             </q-td>
@@ -52,14 +54,76 @@
     <q-card flat class="rounded-borders shadow-1 custom-card">
       <q-card-section class="q-pa-xl">
         <div class="text-h5 text-center text-weight-bolder q-mb-xl">Riwayat Absensi</div>
-        <q-table flat :rows="rowsAbsensi" :columns="columnsAbsensi" row-key="id" class="custom-table" hide-bottom />
+
+        <div class="row q-col-gutter-md q-mb-lg items-center">
+          <div class="col">
+            <q-input
+              outlined
+              dense
+              v-model="filterAbsensi"
+              placeholder="Search..."
+              class="search-input"
+            >
+              <template v-slot:prepend>
+                <q-icon name="search" size="xs" />
+              </template>
+            </q-input>
+          </div>
+          <div class="col-auto">
+            <q-btn
+              unelevated
+              label="Tambah Absen"
+              class="btn-tambah q-px-lg"
+              @click="showAddAbsensi = true"
+            />
+          </div>
+        </div>
+
+        <q-table
+          flat
+          :rows="filteredAbsensi"
+          :columns="columnsAbsensi"
+          row-key="id"
+          class="custom-table"
+          hide-bottom
+          :pagination="{ rowsPerPage: 10 }"
+        />
       </q-card-section>
     </q-card>
+
+    <q-dialog v-model="showAddAbsensi" persistent>
+      <q-card class="dialog-card q-pa-md">
+        <q-btn icon="close" flat round dense v-close-popup class="close-btn text-grey-6" />
+
+        <q-card-section class="text-center q-pt-lg">
+          <div class="text-h6 text-weight-bolder">Tambah Absensi</div>
+        </q-card-section>
+
+        <q-card-section>
+          <div class="text-subtitle1 text-weight-bold q-mb-xs">Nama anggota</div>
+          <q-input
+            outlined
+            v-model="namaAbsen"
+            placeholder="Search..."
+            class="custom-search-input"
+            dense
+            @keyup.enter="confirmAbsensi"
+          />
+        </q-card-section>
+
+        <q-card-actions align="center" class="q-pb-lg q-gutter-x-md">
+          <q-btn flat label="Batal" v-close-popup class="btn-action-dialog btn-batal-dialog" no-caps />
+          <q-btn unelevated label="Konfirmasi" class="btn-action-dialog btn-konfirmasi-dialog" no-caps @click="confirmAbsensi" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
   </q-page>
+
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 
@@ -68,6 +132,10 @@ const router = useRouter()
 
 const filterAnggota = ref('')
 const rowsAnggota = ref([])
+
+// State untuk mengontrol pop-up dan input nama
+const showAddAbsensi = ref(false)
+const namaAbsen = ref('')
 
 const columnsAnggota = [
   { name: 'nama', align: 'left', label: 'Nama', field: 'nama', sortable: true },
@@ -87,6 +155,7 @@ const defaultRows = [
 
 onMounted(() => {
   loadMembers()
+  loadAbsensi()
 })
 
 const loadMembers = () => {
@@ -102,21 +171,53 @@ const loadMembers = () => {
       rowsAnggota.value = defaultRows
       localStorage.setItem('members', JSON.stringify(defaultRows))
     }
-  } catch (e) {
+  } catch (err) {
+    console.warn('Failed to load members:', err)
     rowsAnggota.value = defaultRows
   }
 }
 
-const persistMembers = () => {
+const rowsAbsensi = ref([])
+
+const columnsAbsensi = [
+  { name: 'nama', align: 'left', label: 'Nama', field: 'nama' },
+  { name: 'email', align: 'left', label: 'Email', field: 'email' },
+  { name: 'tanggal', align: 'center', label: 'Tanggal', field: 'tanggal' },
+  { name: 'waktu', align: 'center', label: 'Waktu', field: 'waktu' },
+]
+
+const loadAbsensi = () => {
   try {
-    localStorage.setItem('members', JSON.stringify(rowsAnggota.value))
-  } catch (e) {
-    console.warn('Failed to persist members', e)
+    const raw = localStorage.getItem('absensi')
+    if (raw) {
+      rowsAbsensi.value = JSON.parse(raw)
+    }
+  } catch (err) {
+    console.warn('Failed to load absensi:', err)
   }
 }
 
+const filteredAbsensi = computed(() => {
+  const query = filterAbsensi.value.toLowerCase()
+  return rowsAbsensi.value.filter(row =>
+    row.nama.toLowerCase().includes(query) ||
+    row.email.toLowerCase().includes(query)
+  )
+})
+
+const filterAbsensi = ref('')
+
 const goToTambahAnggota = () => {
   router.push('/anggota/tambah')
+}
+
+// persist members helper (added) — saves current members to localStorage
+const persistMembers = () => {
+  try {
+    localStorage.setItem('members', JSON.stringify(rowsAnggota.value))
+  } catch (err) {
+    console.warn('Failed to persist members:', err)
+  }
 }
 
 const editAnggota = (row) => {
@@ -133,7 +234,7 @@ const deleteAnggota = (row) => {
     persistent: true
   }).onOk(() => {
     rowsAnggota.value = rowsAnggota.value.filter(r => r.id !== row.id)
-    persistMembers()
+    persistMembers() // now defined
     $q.notify({ type: 'positive', message: 'Anggota dihapus' })
   }).onCancel(() => {
     // cancelled
@@ -147,33 +248,155 @@ const getMasaAktifClass = (days) => {
   return 'bg-red-2 text-red-9'
 }
 
-const rowsAbsensi = ref([
-  { id: 1, nama: 'Budi', email: 'budi@gmail.com', tanggal: '2025-12-14', waktu: '18 : 00' },
-  { id: 2, nama: 'Dodit', email: 'dodit@gmail.com', tanggal: '2025-12-14', waktu: '18 : 30' },
-])
+const confirmAbsensi = () => {
+  if (!namaAbsen.value.trim()) {
+    $q.notify({ type: 'negative', message: 'Nama anggota harus diisi!' })
+    return
+  }
 
-const columnsAbsensi = [
-  { name: 'nama', align: 'left', label: 'Nama', field: 'nama' },
-  { name: 'email', align: 'left', label: 'Email', field: 'email' },
-  { name: 'tanggal', align: 'center', label: 'yyyy-MM-dd', field: 'tanggal' },
-  { name: 'waktu', align: 'center', label: 'Waktu', field: 'waktu' },
-]
+  const now = new Date()
+  // Format Tanggal: YYYY-MM-DD
+  const tanggal = now.toISOString().split('T')[0]
+  // Format Waktu: HH:MM
+  const waktu = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':')
+
+  const newEntry = {
+    id: Date.now(),
+    nama: namaAbsen.value,
+    // Generate email otomatis berdasarkan nama
+    email: `${namaAbsen.value.toLowerCase().replace(/\s+/g, '')}@gmail.com`,
+    tanggal,
+    waktu
+  }
+
+  // Masukkan ke urutan paling atas tabel riwayat
+  rowsAbsensi.value.unshift(newEntry)
+
+  // Simpan permanen ke LocalStorage
+  localStorage.setItem('absensi', JSON.stringify(rowsAbsensi.value))
+
+  // Reset input dan tutup dialog
+  namaAbsen.value = ''
+  showAddAbsensi.value = false
+
+  $q.notify({ type: 'positive', message: 'Absensi berhasil dikonfirmasi' })
+}
 </script>
 
 <style lang="scss" scoped>
 .custom-card { border-radius: 15px; }
-.btn-dark-custom { background-color: #0c0c0c; color: white; border-radius: 8px; font-weight: bold; text-transform: none; }
 .custom-table {
-  :deep(thead tr th) { font-weight: 800; color: black; border-bottom: none; }
-  :deep(tbody tr td) { border-bottom: none; vertical-align: middle; }
+  :deep(thead tr th) { font-weight: 800; color: black; border-bottom: none; font-size: 16px; }
+  :deep(tbody tr td) { border-bottom: none; vertical-align: middle; font-size: 14px; }
+  :deep(tbody tr:nth-child(even)) { background-color: #f8f9fa; }
+  :deep(tbody tr:nth-child(odd)) { background-color: #ffffff; }
 }
-.status-chip { height: 34px; min-width: 96px; font-weight: 700; border-radius: 10px; }
-.masa-aktif-chip { height: 34px; min-width: 110px; font-weight: 700; border-radius: 10px; }
-.btn-edit { background-color: #2563eb; color: white; border-radius: 6px; text-transform: none; }
-.btn-delete { background-color: #ef4444; color: white; border-radius: 6px; text-transform: none; }
+.search-absensi {
+  width: 220px;
+  max-width: 40vw;
+  :deep(.q-field__control) {
+    border-radius: 8px;
+  }
+  /* keep consistent with .search-input if you want exact parity */
+}
+.btn-tambah {
+  background-color: #0c0c0c;
+  color: white;
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: bold;
+  height: 36px;
+}
+.btn-dark-custom {
+  /* Styling for "Tambah" on anggota page to match the other add button */
+  background-color: #0c0c0c;
+  color: white;
+  border-radius: 8px;
+  text-transform: none;
+  font-weight: bold;
+  height: 36px;
+  /* minor padding tweak consistent with other buttons */
+}
 
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  min-width: 92px;
+  padding: 0 12px;
+  font-weight: 700;
+  border-radius: 10px;
+  font-size: 13px;
+  text-transform: none;
+}
+.masa-aktif-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  min-width: 120px;
+  padding: 0 12px;
+  font-weight: 700;
+  border-radius: 10px;
+  font-size: 13px;
+  text-transform: none;
+}
+.btn-edit {
+  background-color: #2563eb;
+  color: white;
+  border-radius: 6px;
+  text-transform: none;
+}
+.btn-delete {
+  background-color: #ef4444;
+  color: white;
+  border-radius: 6px;
+  text-transform: none;
+}
 .search-input {
   max-width: 100%;
-  :deep(.q-field__control) { border-radius: 8px; }
+  :deep(.q-field__control) {
+    border-radius: 8px;
+  }
+}
+
+.dialog-card {
+  width: 100%;
+  max-width: 450px;
+  border-radius: 20px;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #f0f0f0;
+}
+
+.custom-search-input {
+  :deep(.q-field__control) {
+    border-radius: 12px;
+    border: 1.5px solid #555;
+    &:before, &:after { display: none; }
+  }
+}
+
+.btn-action-dialog {
+  width: 140px;
+  height: 44px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.btn-batal-dialog {
+  background: #f0f0f0;
+  color: black;
+}
+
+.btn-konfirmasi-dialog {
+  background: linear-gradient(to bottom, #a0a0a0, #666666);
+  color: white;
 }
 </style>

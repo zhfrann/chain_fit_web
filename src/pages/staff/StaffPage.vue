@@ -232,7 +232,7 @@ const deleteMember = (member) => {
   background: transparent;
 
   :deep(thead tr th) {
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 800;
     color: #000000;
     border-bottom: none;
@@ -248,6 +248,9 @@ const deleteMember = (member) => {
   }
   :deep(tbody tr:nth-child(even)) {
     background-color: #f8fafc;
+  }
+  :deep(tbody tr:nth-child(odd)) {
+    background-color: #ffffff;
   }
 }
 </style>

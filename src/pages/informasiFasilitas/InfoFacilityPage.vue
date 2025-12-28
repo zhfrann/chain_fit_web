@@ -347,8 +347,12 @@ const goToDetail = (id) => {
     padding: 16px;
   }
 
-  :deep(.q-table tbody tr) {
-    background: white;
+  :deep(.q-table tbody tr:nth-child(even)) {
+    background-color: #f8f9fa; /* Zebra stripe effect */
+  }
+
+  :deep(.q-table tbody tr:nth-child(odd)) {
+    background-color: #ffffff; /* Alternate row color */
   }
 }
 

@@ -7,22 +7,48 @@
         <div class="row q-col-gutter-x-md q-col-gutter-y-lg">
           <div class="col-12 col-sm-6">
             <div class="text-weight-bold q-mb-sm">Nama</div>
-            <q-input outlined dense v-model="form.nama" placeholder="Masukkan nama anggota" class="custom-input" />
+            <q-input
+              outlined
+              dense
+              v-model="form.nama"
+              placeholder="Masukkan nama anggota"
+              class="custom-input"
+              :error="!!errors.nama"
+              :error-message="errors.nama"
+              @input="errors.nama = ''"
+            />
           </div>
           <div class="col-12 col-sm-6">
             <div class="text-weight-bold q-mb-sm">Email</div>
-            <q-input outlined dense v-model="form.email" placeholder="Masukkan email anggota" class="custom-input" />
+            <q-input
+              outlined
+              dense
+              v-model="form.email"
+              placeholder="Masukkan email anggota"
+              class="custom-input"
+              :error="!!errors.email"
+              :error-message="errors.email"
+              @input="errors.email = ''"
+            />
           </div>
 
           <div class="col-12">
             <div class="text-weight-bold q-mb-md">Paket Gym</div>
             <div class="row q-col-gutter-md">
               <div v-for="paket in paketOptions" :key="paket.id" class="col-12 col-sm-4">
-                <q-card flat bordered class="paket-card cursor-pointer" :class="{ 'paket-selected': form.selectedPaket === paket.id }" @click="form.selectedPaket = paket.id">
+                <q-card
+                  flat
+                  bordered
+                  class="paket-card cursor-pointer"
+                  :class="{ 'paket-selected': form.selectedPaket === paket.id }"
+                  @click="selectPaket(paket.id)"
+                >
                   <q-card-section class="row items-center no-wrap">
                     <div class="col">
                       <div class="text-h6 text-weight-bolder">{{ paket.nama }}</div>
-                      <div class="text-caption text-weight-bold">Rp {{ paket.harga.toLocaleString() }}</div>
+                      <div class="text-caption text-weight-bold">
+                        Rp {{ paket.harga.toLocaleString() }}
+                      </div>
                     </div>
                     <div class="col-auto text-right">
                       <span class="text-h4 text-weight-bolder">{{ paket.durasi }}</span>
@@ -31,6 +57,9 @@
                   </q-card-section>
                 </q-card>
               </div>
+            </div>
+            <div v-if="errors.selectedPaket" class="error-text q-mt-sm">
+              {{ errors.selectedPaket }}
             </div>
           </div>
         </div>
@@ -45,39 +74,75 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 const form = ref({ nama: '', email: '', selectedPaket: null })
 
+// validation errors
+const errors = reactive({
+  nama: '',
+  email: '',
+  selectedPaket: '',
+})
+
 const paketOptions = [
   { id: 'A', nama: 'Paket A', harga: 100000, durasi: 90 },
   { id: 'B', nama: 'Paket B', harga: 100000, durasi: 60 },
-  { id: 'C', nama: 'Paket C', harga: 100000, durasi: 30 }
+  { id: 'C', nama: 'Paket C', harga: 100000, durasi: 30 },
 ]
 
 const goBack = () => {
   router.push('/anggota')
 }
 
+const selectPaket = (id) => {
+  form.value.selectedPaket = id
+  errors.selectedPaket = ''
+}
+
+const validateEmail = (email) => {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return re.test(String(email).toLowerCase())
+}
+
 const submitForm = () => {
-  if (!form.value.nama || !form.value.email || !form.value.selectedPaket) {
-    alert('Mohon lengkapi semua data!')
-    return
+  // reset errors
+  errors.nama = ''
+  errors.email = ''
+  errors.selectedPaket = ''
+
+  let ok = true
+  if (!form.value.nama || !form.value.nama.trim()) {
+    errors.nama = 'Nama wajib diisi'
+    ok = false
   }
+  if (!form.value.email || !form.value.email.trim()) {
+    errors.email = 'Email wajib diisi'
+    ok = false
+  } else if (!validateEmail(form.value.email)) {
+    errors.email = 'Format email tidak valid'
+    ok = false
+  }
+  if (!form.value.selectedPaket) {
+    errors.selectedPaket = 'Silakan pilih paket'
+    ok = false
+  }
+
+  if (!ok) return
 
   try {
     const raw = localStorage.getItem('members')
     const members = raw ? JSON.parse(raw) : []
-    const paket = paketOptions.find(p => p.id === form.value.selectedPaket)
+    const paket = paketOptions.find((p) => p.id === form.value.selectedPaket)
 
     const newMember = {
       id: Date.now(),
       nama: form.value.nama,
       email: form.value.email,
       status: 'Aktif',
-      masaAktif: paket.durasi
+      masaAktif: paket.durasi,
     }
 
     members.push(newMember)
@@ -90,10 +155,46 @@ const submitForm = () => {
 </script>
 
 <style lang="scss" scoped>
-.custom-card { border-radius: 15px; max-width: 1000px; margin: 0 auto; }
-.custom-input :deep(.q-field__control) { border-radius: 10px; background-color: white; border: 1.5px solid #000; }
-.paket-card { border-radius: 12px; background-color: #94a3b8; color: white; border: 2px solid transparent; }
-.paket-selected { background-color: #475569; border-color: #0c0c0c; }
-.btn-tambah { background-color: #0c0c0c; color: white; border-radius: 10px; font-weight: bold; height: 44px; }
-.btn-batal { background-color: #e53935; color: white; border-radius: 10px; font-weight: bold; height: 44px; text-transform: none; }
+.custom-card {
+  border-radius: 15px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+.custom-input :deep(.q-field__control) {
+  border-radius: 10px;
+  background-color: white;
+  border: 1.5px solid #000;
+}
+.paket-card {
+  border-radius: 12px;
+  background-color: #94a3b8;
+  color: white;
+  border: 2px solid transparent;
+}
+.paket-selected {
+  background-color: #475569;
+  border-color: #0c0c0c;
+}
+.btn-tambah {
+  background-color: #0c0c0c;
+  color: white;
+  border-radius: 10px;
+  font-weight: bold;
+  height: 44px;
+}
+.btn-batal {
+  background-color: #e53935;
+  color: white;
+  border-radius: 10px;
+  font-weight: bold;
+  height: 44px;
+  text-transform: none;
+}
+
+/* error text */
+.error-text {
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 600;
+}
 </style>
