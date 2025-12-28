@@ -3,11 +3,11 @@
     <q-page-container>
       <q-page class="row">
         <div class="col-12 col-md-6 gt-sm">
-          <q-img src="../assets/RegisterPage-asset1.jpg" class="full-height-img" :ratio="1">
+          <q-img src="../../assets/RegisterPage-asset1.jpg" class="full-height-img" :ratio="1">
             <div class="absolute-full column justify-between q-pa-xl bg-transparent-overlay">
               <div class="logo-wrapper q-pl-lg">
                 <q-img
-                  src="../assets/ChainFitLogo.png"
+                  src="../../assets/ChainFitLogo.png"
                   spinner-color="white"
                   style="height: 140px; max-width: 150px"
                 />

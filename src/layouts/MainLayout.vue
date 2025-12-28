@@ -81,7 +81,7 @@
           clickable
           v-ripple
           v-if="miniState"
-          @click="router.push('/add')"
+          @click="miniState = false"
         >
           <q-item-section avatar class="">
             <q-icon name="add" size="22px" />
@@ -116,6 +116,7 @@
           label="Logout"
           no-caps
           align="left"
+          @click="this.$router.push('/login')"
         />
       </div>
     </q-drawer>
