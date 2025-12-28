@@ -135,7 +135,13 @@
 
           <template v-slot:body-cell-actions="props">
             <q-td :props="props">
-              <q-btn unelevated label="Detail" no-caps class="btn-detail q-px-lg" />
+              <q-btn
+                unelevated
+                label="Detail"
+                no-caps
+                class="btn-detail q-px-lg"
+                @click="goToDetail(props.row.id)"
+              />
             </q-td>
           </template>
         </q-table>
@@ -196,6 +202,11 @@ const addPlan = () => {
 
 const editInfo = () => {
   router.push('/info/edit')
+}
+
+const goToDetail = (id) => {
+  if (!id) return
+  router.push(`/info/alat/${id}`)
 }
 </script>
 
