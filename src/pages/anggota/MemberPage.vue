@@ -55,27 +55,33 @@
       <q-card-section class="q-pa-xl">
         <div class="text-h5 text-center text-weight-bolder q-mb-xl">Riwayat Absensi</div>
 
+        <!-- replaced: search row for Riwayat Absensi -->
         <div class="row q-col-gutter-md q-mb-lg items-center">
           <div class="col">
-            <q-input
-              outlined
-              dense
-              v-model="filterAbsensi"
-              placeholder="Search..."
-              class="search-input"
-            >
-              <template v-slot:prepend>
-                <q-icon name="search" size="xs" />
+            <q-input outlined dense v-model="filterAbsensi" placeholder="Search..." class="search-input">
+              <template v-slot:prepend><q-icon name="search" size="xs" /></template>
+            </q-input>
+          </div>
+
+          <div class="col-auto" style="min-width: 200px">
+            <q-input outlined dense v-model="filterTanggal" placeholder="Filter Tanggal" class="search-input" mask="####-##-##">
+              <template v-slot:append>
+                <q-icon name="event" class="cursor-pointer">
+                  <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                    <q-date v-model="filterTanggal" mask="YYYY-MM-DD">
+                      <div class="row items-center justify-end">
+                        <q-btn v-close-popup label="Close" color="primary" flat />
+                        <q-btn v-close-popup label="Reset" color="negative" flat @click="filterTanggal = ''" />
+                      </div>
+                    </q-date>
+                  </q-popup-proxy>
+                </q-icon>
               </template>
             </q-input>
           </div>
+
           <div class="col-auto">
-            <q-btn
-              unelevated
-              label="Tambah Absen"
-              class="btn-tambah q-px-lg"
-              @click="showAddAbsensi = true"
-            />
+            <q-btn unelevated label="Tambah Absen" class="btn-tambah q-px-lg" @click="showAddAbsensi = true" />
           </div>
         </div>
 
@@ -124,7 +130,7 @@
 
         <q-card-section class="q-pt-md">
           <q-img
-            src="path/to/your/illustration.png"
+            src="../../assets/popup/hapus.png"
             style="width: 150px; height: auto"
             class="q-mb-md"
           />
@@ -176,6 +182,9 @@ const namaAbsen = ref('')
 // State untuk pop-up konfirmasi hapus
 const showConfirmDelete = ref(false)
 const selectedMemberToDelete = ref(null)
+
+// State untuk filter tanggal riwayat
+const filterTanggal = ref('') // Format default: YYYY/MM/DD
 
 const columnsAnggota = [
   { name: 'nama', align: 'left', label: 'Nama', field: 'nama', sortable: true },
@@ -238,11 +247,25 @@ const loadAbsensi = () => {
 }
 
 const filteredAbsensi = computed(() => {
+  let data = rowsAbsensi.value
+
+  // Filter berdasarkan Tanggal jika ada yang dipilih
+  if (filterTanggal.value) {
+    // Sesuaikan format jika perlu (LocalStorage menyimpan YYYY-MM-DD)
+    const targetDate = filterTanggal.value.replace(/\//g, '-')
+    data = data.filter(row => row.tanggal === targetDate)
+  }
+
+  // Filter berdasarkan Nama/Email
   const query = filterAbsensi.value.toLowerCase()
-  return rowsAbsensi.value.filter(row =>
-    row.nama.toLowerCase().includes(query) ||
-    row.email.toLowerCase().includes(query)
-  )
+  if (query) {
+    data = data.filter(row =>
+      row.nama.toLowerCase().includes(query) ||
+      row.email.toLowerCase().includes(query)
+    )
+  }
+
+  return data
 })
 
 const filterAbsensi = ref('')
