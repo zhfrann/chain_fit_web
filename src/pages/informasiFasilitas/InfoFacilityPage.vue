@@ -354,10 +354,11 @@ const goToDetail = (id) => {
   }
 
   :deep(.q-table tbody tr:nth-child(odd)) {
-    background-color: #ffffff;
+    background-color: #ffffff; /* Alternate row color */
   }
 }
 
+// Custom Scrollbar for better UI
 ::-webkit-scrollbar {
   width: 8px;
 }

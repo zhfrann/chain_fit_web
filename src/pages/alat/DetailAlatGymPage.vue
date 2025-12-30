@@ -9,60 +9,53 @@
         <div class="row q-col-gutter-lg q-mb-xl">
           <div class="col-12 col-md-4">
             <div class="text-subtitle1 text-weight-bold q-mb-sm">Nama Alat</div>
-            <q-input
-              outlined
-              dense
-              v-model="equipment.name"
-              class="bg-white rounded-input"
-            />
+            <div class="text-body1 bg-white q-pa-sm rounded-borders bordered-box px-md">
+              {{ equipment.name }}
+            </div>
           </div>
 
           <div class="col-12 col-md-4">
             <div class="text-subtitle1 text-weight-bold q-mb-sm">Jumlah</div>
-            <q-input
-              outlined
-              dense
-              type="number"
-              v-model="equipment.qty"
-              class="bg-white rounded-input"
-            />
+            <div class="text-body1 bg-white q-pa-sm rounded-borders bordered-box px-md">
+              {{ equipment.qty }}
+            </div>
           </div>
 
           <div class="col-12 col-md-4">
             <div class="text-subtitle1 text-weight-bold q-mb-sm">Status</div>
-            <q-select
-              outlined
-              dense
-              v-model="equipment.status"
-              :options="statusOptions"
-              class="bg-white rounded-input"
-            >
-              <template v-slot:append>
-                <q-icon name="expand_more" />
-              </template>
-            </q-select>
+            <div class="text-body1 bg-white q-pa-sm rounded-borders bordered-box px-md">
+              {{ equipment.status }}
+            </div>
           </div>
         </div>
 
         <div class="row q-col-gutter-md">
           <div class="col-12 col-md-6">
-            <q-img
-              :src="equipment.images[0] || 'https://via.placeholder.com/600x400?text=Bench+Press'"
-              class="rounded-borders full-height"
-              style="border: 1px solid #ccc; min-height: 300px;"
-              fit="contain"
-            />
+            <div class="video-wrapper bg-black rounded-borders flex flex-center">
+              <video
+                controls
+                class="full-width"
+                style="max-height: 400px; object-fit: contain;"
+              >
+                <source src="~assets/alatgym/videoAlat.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+              </video>
+            </div>
           </div>
 
           <div class="col-12 col-md-6">
-            <div class="row q-col-gutter-sm">
-              <div v-for="(img, idx) in equipment.imagesPreview" :key="idx" class="col-6">
-                <q-img
-                  :src="img"
-                  class="rounded-borders"
-                  style="border: 1px solid #ccc; aspect-ratio: 16/9;"
-                  fit="contain"
-                />
+            <div class="image-grid-container">
+              <div class="grid-item">
+                <q-img :src="localImages[0]" class="full-height bordered-image" fit="cover" />
+              </div>
+              <div class="grid-item">
+                <q-img :src="localImages[1]" class="full-height bordered-image" fit="cover" />
+              </div>
+              <div class="grid-item">
+                <q-img :src="localImages[2]" class="full-height bordered-image" fit="cover" />
+              </div>
+              <div class="grid-item">
+                <q-img :src="localImages[3]" class="full-height bordered-image" fit="cover" />
               </div>
             </div>
           </div>
@@ -70,35 +63,83 @@
 
         <div class="row justify-between q-gutter-md q-mt-xl">
           <div>
-            <q-btn flat label="Kembali" class="q-ml-sm" @click="goBack" />
+            <q-btn
+              flat
+              label="Kembali"
+              class="btn-kembali q-ml-sm"
+              @click="goBack"
+            />
           </div>
 
-          <div>
+          <div class="row q-gutter-sm">
             <q-btn
               unelevated
               label="Edit"
-              color="primary"
-              class="q-px-xl text-weight-bold q-mr-sm"
+              class="btn-edit q-px-xl text-weight-bold"
               no-caps
               @click="editEquipment"
             />
             <q-btn
               unelevated
               label="Hapus"
-              color="negative"
-              class="q-px-xl text-weight-bold"
+              class="btn-hapus q-px-xl text-weight-bold"
               no-caps
-              @click="deleteEquipment"
+              @click="showConfirmDelete = true"
             />
           </div>
         </div>
       </q-card-section>
     </q-card>
+
+    <!-- Confirmation Popup -->
+    <q-dialog v-model="showConfirmDelete" persistent>
+      <q-card class="dialog-card q-pa-lg text-center">
+        <q-btn icon="close" flat round dense v-close-popup class="close-btn text-grey-6" />
+
+        <q-card-section class="q-pt-md">
+          <q-img
+            src="../../assets/popup/hapus.png"
+            style="width: 150px; height: auto"
+            class="q-mb-md"
+          />
+
+          <div class="text-h6 text-weight-bolder q-mb-sm">Apakah Anda yakin ingin melanjutkan?</div>
+          <div class="text-body2 text-grey-8">
+            Data alat gym yang dihapus tidak dapat dipulihkan.
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="center" class="q-pb-md q-gutter-x-md">
+          <q-btn
+            flat
+            label="Batal"
+            v-close-popup
+            class="btn-action-dialog btn-batal-dialog"
+            no-caps
+          />
+          <q-btn
+            unelevated
+            label="Ya, Hapus Data"
+            class="btn-action-dialog btn-konfirmasi-dialog"
+            no-caps
+            @click="confirmDelete"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </q-page>
 </template>
 
 <script setup>
-import { reactive, onMounted } from 'vue'
+// Membuat daftar aset lokal agar bisa dibaca oleh Vite/Quasar
+const localImages = [
+  new URL('../../assets/alatgym/alat1.jpeg', import.meta.url).href,
+  new URL('../../assets/alatgym/alat2.jpeg', import.meta.url).href,
+  new URL('../../assets/alatgym/alat3.jpeg', import.meta.url).href,
+  new URL('../../assets/alatgym/alat4.jpeg', import.meta.url).href
+]
+
+import { reactive, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 
@@ -106,101 +147,174 @@ const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
 
+const showConfirmDelete = ref(false)
+
 const equipment = reactive({
   id: null,
-  name: 'Alat 1',
-  qty: 10,
-  status: 'Baik',
-  images: [
-    'https://via.placeholder.com/600x400?text=Bench+Press'
-  ],
+  name: 'Loading...',
+  qty: 0,
+  status: '-',
+  images: [],
   imagesPreview: []
 })
 
-const statusOptions = [
-  'Baik',
-  'Butuh Perawatan',
-  'Rusak'
-]
-
 onMounted(() => {
-  const rawId = route.params.id
-  const id = rawId !== undefined && rawId !== null ? String(rawId) : null
+  const id = route.params.id ? String(route.params.id) : null
   if (id) {
     equipment.id = id
+    loadData(id)
   }
+})
 
+const loadData = (id) => {
   try {
     const raw = localStorage.getItem('equipments')
     if (raw) {
       const list = JSON.parse(raw)
       const found = list.find(e => String(e.id) === String(id))
       if (found) {
-        equipment.id = found.id ?? equipment.id
-        equipment.name = found.name ?? equipment.name
-        equipment.qty = Number(found.qty) || equipment.qty
-        equipment.status = found.status ?? equipment.status
-        equipment.images = Array.isArray(found.images) && found.images.length ? found.images : equipment.images
+        equipment.name = found.name || 'Alat Gym'
+        equipment.qty = Number(found.qty) || 0
+        equipment.status = found.status || 'Baik'
+        equipment.images = Array.isArray(found.images) ? found.images : []
+        equipment.imagesPreview = equipment.images.length > 0 ? found.images : []
       }
     }
-  } catch (err) {
-    console.warn('Cannot load equipments from localStorage', err)
+  } catch {
+    console.error('Failed to parse localStorage data')
   }
-
-  if (!Array.isArray(equipment.images)) equipment.images = []
-  equipment.imagesPreview = equipment.images.length
-    ? equipment.images
-    : ['https://via.placeholder.com/400x225']
-})
+}
 
 const goBack = () => router.back()
 
 const editEquipment = () => {
-  if (!equipment.id) {
-    $q.notify({ message: 'ID alat tidak tersedia', color: 'negative' })
-    return
-  }
   router.push({ path: `/info/alat/edit/${equipment.id}` })
 }
 
 const deleteEquipment = () => {
-  $q.dialog({
-    title: 'Konfirmasi',
-    message: `Hapus alat "${equipment.name}"?`,
-    cancel: true,
-    persistent: true
-  }).onOk(() => {
-    try {
-      const raw = localStorage.getItem('equipments')
-      if (raw) {
-        let list = JSON.parse(raw)
-        list = list.filter(e => String(e.id) !== String(equipment.id))
-        localStorage.setItem('equipments', JSON.stringify(list))
-      }
-    } catch (err) {
-      console.warn('Gagal menghapus dari localStorage', err)
-    }
+  try {
+    const raw = localStorage.getItem('equipments')
+    if (raw) {
+      let list = JSON.parse(raw)
+      list = list.filter(e => String(e.id) !== String(equipment.id))
 
-    $q.notify({ message: 'Alat dihapus', color: 'positive' })
-    router.back()
-  }).onCancel(() => {
-  })
+      localStorage.setItem('equipments', JSON.stringify(list))
+
+      $q.notify({
+        message: 'Data alat berhasil dihapus',
+        color: 'positive',
+        icon: 'check'
+      })
+
+      router.push('/info')
+    }
+  } catch (err) {
+    $q.notify({
+      message: 'Gagal menghapus data',
+      color: 'negative'
+    })
+    console.error(err)
+  }
+}
+
+// add this wrapper so dialog closes visually before navigation
+const confirmDelete = () => {
+  showConfirmDelete.value = false
+  // small delay to let dialog close animation finish
+  setTimeout(() => {
+    deleteEquipment()
+  }, 150)
 }
 </script>
 
 <style scoped lang="scss">
-.rounded-input {
-  :deep(.q-field__control) {
-    border-radius: 8px;
-    border: 1.5px solid #000;
-  }
+.bordered-box {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
 }
 
-:deep(.q-field--outlined) .q-field__control::before {
-  border: 1.5px solid #000;
+.video-wrapper {
+  border: 1px solid #ccc;
+  height: 400px;
+  overflow: hidden;
 }
 
-.text-subtitle1 {
-  color: #000;
+.image-grid-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 8px;
+  height: 400px;
+}
+
+.grid-item {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.bordered-image {
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  transition: transform 0.2s ease-in-out;
+}
+
+.bordered-image:hover {
+  transform: scale(1.05);
+  border-color: #bbb;
+}
+
+.btn-kembali {
+  background-color: #0c0c0c;
+  color: white;
+  border-radius: 8px;
+  min-width: 100px;
+}
+
+.btn-edit {
+  background-color: #2563eb;
+  color: white;
+  border-radius: 8px;
+}
+
+.btn-hapus {
+  background-color: #ef4444;
+  color: white;
+  border-radius: 8px;
+}
+
+.dialog-card {
+  width: 100%;
+  max-width: 450px;
+  border-radius: 20px;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #f0f0f0;
+}
+
+.btn-action-dialog {
+  width: 140px;
+  height: 44px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.btn-batal-dialog {
+  background: #f0f0f0;
+  color: black;
+}
+
+.btn-konfirmasi-dialog {
+  background: linear-gradient(to bottom, #a0a0a0, #666666);
+  color: white;
 }
 </style>
