@@ -16,6 +16,11 @@ const routes = [
         meta: { title: 'Dashboard' },
       },
       {
+        path: 'finance',
+        component: () => import('pages/managementKeuangan/ManajemenKeuanganPage.vue'),
+        meta: { title: 'Manajemen Keuangan' },
+      },
+      {
         path: 'staff',
         component: () => import('pages/staff/StaffPage.vue'),
         meta: { title: 'Staff' },
