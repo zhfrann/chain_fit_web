@@ -165,7 +165,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 
@@ -205,6 +205,15 @@ const defaultRows = [
 onMounted(() => {
   loadMembers()
   loadAbsensi()
+
+  // Listen for updates triggered from EditMemberPage / TambahMemberPage
+  // so the members table will refresh immediately when user returns.
+  window.addEventListener('members:updated', loadMembers)
+})
+
+// cleanup listener when component unmounts
+onBeforeUnmount(() => {
+  window.removeEventListener('members:updated', loadMembers)
 })
 
 const loadMembers = () => {

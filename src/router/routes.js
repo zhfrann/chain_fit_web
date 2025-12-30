@@ -40,6 +40,12 @@ const routes = [
       },
 
       {
+        path: 'anggota/edit/:id',
+        component: () => import('pages/anggota/EditMemberPage.vue'),
+        meta: { title: 'Edit Anggota' },
+      },
+
+      {
         path: 'info',
         component: () => import('pages/informasiFasilitas/InfoFacilityPage.vue'),
         meta: { title: 'Informasi & Fasilitas' },
