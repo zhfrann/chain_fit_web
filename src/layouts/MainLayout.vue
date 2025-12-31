@@ -71,6 +71,7 @@
             text-color="black"
             icon="add"
             class="bg-white q-ml-sm"
+            @click="goToDaftarGym"
           />
         </div>
       </div>
@@ -81,7 +82,7 @@
           clickable
           v-ripple
           v-if="miniState"
-          @click="miniState = false"
+          @click="goToDaftarGym"
         >
           <q-item-section avatar class="">
             <q-icon name="add" size="22px" />
@@ -129,11 +130,15 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 const leftDrawerOpen = ref(true)
 const miniState = ref(false)
 const selectedGym = ref('Tidak Ada Gym')
 const gymOptions = ['Urban Gym', 'Elite Fitness', 'Tidak Ada Gym']
+
+const router = useRouter()
+const goToDaftarGym = () => { router.push('/daftar-gym') }
 
 const menuLinks = [
   { title: 'Dashboard', icon: 'grid_view', to: '/dashboard' },

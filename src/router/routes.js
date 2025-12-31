@@ -1,4 +1,4 @@
-  const routes = [
+const routes = [
     // {
     //   path: '/',
     //   component: () => import('layouts/MainLayout.vue'),
@@ -14,6 +14,11 @@
           path: 'dashboard',
           component: () => import('pages/dashboard/DashboardPage.vue'),
           meta: { title: 'Dashboard' },
+        },
+        {
+          path: 'daftar-gym',
+          component: () => import('pages/daftarGym/DaftarGymPage.vue'),
+          meta: { title: 'Pendaftaran Gym' }
         },
         {
           path: 'finance',
