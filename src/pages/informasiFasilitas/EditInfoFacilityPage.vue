@@ -147,8 +147,15 @@ const saveChanges = () => {
   line-height: 1.6;
 }
 
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #f0f0f0;
+}
+
 .btn-save {
-  background: #10b981;
+  background: #0a0f1f;
   color: #fff;
   border-radius: 8px;
   height: 40px;

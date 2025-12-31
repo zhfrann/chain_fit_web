@@ -40,7 +40,6 @@
           <q-chip
             v-for="tag in tags"
             :key="tag"
-            removable
             square
             color="grey-8"
             text-color="white"
@@ -65,8 +64,8 @@
                 <div class="row items-center justify-between q-mb-sm">
                   <div class="text-h6 text-weight-bold">{{ plan.title }}</div>
                   <div class="row q-gutter-xs">
-                    <q-btn round dense icon="edit" size="sm" class="btn-icon-edit" />
-                    <q-btn round dense icon="delete" size="sm" class="btn-icon-delete" />
+                    <q-btn round dense icon="edit" size="sm" class="btn-icon-edit" @click="editPlan(plan)" />
+                    <q-btn round dense icon="delete" size="sm" class="btn-icon-delete" @click="confirmDeletePlan(plan)" />
                   </div>
                 </div>
 
@@ -154,15 +153,181 @@
       </q-card-section>
     </q-card>
   </q-page>
+
+  <q-dialog v-model="showAddDialog" persistent>
+    <q-card class="dialog-card q-pa-lg">
+      <q-btn icon="close" flat round dense v-close-popup class="close-btn text-grey-6" />
+
+      <q-card-section class="text-center q-pb-none">
+        <div class="text-h6 text-weight-bolder">
+          {{ editingPlanId ? 'Edit Paket Berlangganan' : 'Tambah Paket Berlangganan' }}
+        </div>
+        <div class="text-caption text-grey-7">Silakan lengkapi detail paket di bawah ini.</div>
+      </q-card-section>
+
+      <q-card-section class="q-gutter-y-md q-pt-lg">
+        <div>
+          <div class="text-subtitle2 q-mb-xs text-weight-bold">Nama Paket</div>
+          <q-input
+            outlined
+            dense
+            v-model="newPlan.title"
+            placeholder="Contoh: Paket Gold"
+            class="custom-input"
+          />
+        </div>
+
+        <div>
+          <div class="text-subtitle2 q-mb-xs text-weight-bold">Harga (per bulan)</div>
+          <q-input
+            outlined
+            dense
+            v-model="newPlan.price"
+            placeholder="Contoh: Rp 300.000"
+            class="custom-input"
+          >
+            <template v-slot:prepend>
+              <q-icon name="payments" size="xs" color="grey-7" />
+            </template>
+          </q-input>
+        </div>
+
+        <div>
+          <div class="text-subtitle2 q-mb-xs text-weight-bold">Fasilitas Paket</div>
+          <div v-for="(feature, index) in newPlan.features" :key="index" class="row items-center q-mb-sm no-wrap">
+            <q-input
+              outlined
+              dense
+              v-model="newPlan.features[index]"
+              placeholder="Contoh: Free WiFi"
+              class="col custom-input"
+            />
+            <q-btn
+              flat
+              round
+              color="negative"
+              icon="delete_outline"
+              size="sm"
+              class="q-ml-xs"
+              @click="removeFeatureInput(index)"
+              v-if="newPlan.features.length > 1"
+            />
+          </div>
+          <q-btn
+            outline
+            label="Tambah Baris Fasilitas"
+            icon="add_circle_outline"
+            no-caps
+            class="full-width q-mt-sm btn-outline-add"
+            @click="addFeatureInput"
+          />
+        </div>
+      </q-card-section>
+
+      <q-card-actions align="center" class="q-pt-xl q-pb-md">
+        <q-btn
+          flat
+          label="Batal"
+          v-close-popup
+          class="btn-action-dialog btn-batal-dialog"
+          no-caps
+        />
+        <q-btn
+          unelevated
+          label="Simpan Paket"
+          class="btn-action-dialog btn-konfirmasi-dialog"
+          no-caps
+          @click="submitNewPlan"
+        />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
+
+  <!-- Delete confirmation dialog for plans (updated to match StaffPage design) -->
+  <q-dialog v-model="showDeletePlanDialog" persistent>
+    <q-card class="dialog-card q-pa-lg text-center">
+      <q-btn icon="close" flat round dense v-close-popup class="close-btn text-grey-6" />
+
+      <q-card-section class="q-pt-md">
+        <q-img
+          src="../../assets/popup/hapus.png"
+          style="width: 150px; height: auto"
+          class="q-mb-md"
+        />
+        <div class="text-h6 text-weight-bolder q-mb-sm">Apakah Anda yakin ingin menghapus paket ini?</div>
+        <div class="text-body2 text-grey-8">
+          Data paket yang dihapus tidak dapat dipulihkan.
+        </div>
+      </q-card-section>
+
+      <q-card-actions align="center" class="q-pb-md q-gutter-x-md">
+        <q-btn flat label="Batal" v-close-popup class="btn-action-dialog btn-batal-dialog" no-caps />
+        <q-btn unelevated label="Ya, Hapus Data" class="btn-action-dialog btn-konfirmasi-dialog" no-caps v-close-popup @click="executeDelete" />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
 
 const router = useRouter()
+const $q = useQuasar()
 const search = ref('')
 const tags = ['Pilates', 'Sauna', 'GymBro']
+
+const showAddDialog = ref(false)
+const showDeletePlanDialog = ref(false)
+const planToDelete = ref(null)
+const editingPlanId = ref(null)
+
+const newPlan = reactive({
+  title: '',
+  price: '',
+  features: ['']
+})
+
+const addFeatureInput = () => {
+  newPlan.features.push('')
+}
+
+const removeFeatureInput = (index) => {
+  newPlan.features.splice(index, 1)
+}
+
+const submitNewPlan = () => {
+  if (!newPlan.title || !newPlan.price) {
+    alert('Nama paket dan harga harus diisi!')
+    return
+  }
+
+  if (editingPlanId.value) {
+    const idx = subscriptionPlans.value.findIndex(p => p.id === editingPlanId.value)
+    if (idx !== -1) {
+      subscriptionPlans.value[idx] = {
+        ...subscriptionPlans.value[idx],
+        title: newPlan.title,
+        price: newPlan.price,
+        features: newPlan.features.filter(f => f.trim() !== '')
+      }
+    }
+  } else {
+    subscriptionPlans.value.push({
+      id: Date.now(),
+      title: newPlan.title,
+      price: newPlan.price,
+      features: newPlan.features.filter(f => f.trim() !== '')
+    })
+  }
+
+  showAddDialog.value = false
+  newPlan.title = ''
+  newPlan.price = ''
+  newPlan.features = ['']
+  editingPlanId.value = null
+}
 
 const subscriptionPlans = ref([
   {
@@ -220,7 +385,37 @@ onMounted(() => {
 })
 
 const addPlan = () => {
-  console.log('Tambah Paket Clicked')
+  editingPlanId.value = null
+  newPlan.title = ''
+  newPlan.price = ''
+  newPlan.features = ['']
+  showAddDialog.value = true
+}
+
+const editPlan = (plan) => {
+  if (!plan) return
+  editingPlanId.value = plan.id
+  newPlan.title = plan.title
+  newPlan.price = plan.price
+  newPlan.features = Array.isArray(plan.features) && plan.features.length ? [...plan.features] : ['']
+  showAddDialog.value = true
+}
+
+// confirm delete plan (show confirmation dialog)
+const confirmDeletePlan = (plan) => {
+  planToDelete.value = plan
+  showDeletePlanDialog.value = true
+}
+
+const executeDelete = () => {
+  if (!planToDelete.value) return
+  const id = planToDelete.value.id
+  subscriptionPlans.value = subscriptionPlans.value.filter(p => p.id !== id)
+
+  $q.notify({ type: 'positive', message: 'Paket berhasil dihapus' })
+
+  planToDelete.value = null
+  showDeletePlanDialog.value = false
 }
 
 const editInfo = () => {
@@ -238,6 +433,7 @@ const goToDetail = (id) => {
 </script>
 
 <style scoped lang="scss">
+
 .info-block {
   .text-subtitle2 {
     color: #000;
@@ -354,11 +550,77 @@ const goToDetail = (id) => {
   }
 
   :deep(.q-table tbody tr:nth-child(odd)) {
-    background-color: #ffffff; /* Alternate row color */
+    background-color: #ffffff;
   }
 }
 
-// Custom Scrollbar for better UI
+.dialog-card {
+  width: 100%;
+  max-width: 450px;
+  border-radius: 20px;
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #f0f0f0;
+}
+
+.btn-action-dialog {
+  width: 140px;
+  height: 44px;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.btn-batal-dialog {
+  background: #f0f0f0;
+  color: black;
+}
+
+.btn-konfirmasi-dialog {
+  background: linear-gradient(to bottom, #a0a0a0, #666666);
+  color: white;
+}
+
+.btn-action-dialog + .btn-action-dialog {
+  margin-left: 12px;
+}
+
+/* Gaya tambahan untuk Form di Pop-up */
+.custom-input {
+  :deep(.q-field__control) {
+    border-radius: 10px;
+    background-color: #ffffff;
+    transition: all 0.3s;
+
+    &:hover {
+      background-color: #f8fafc;
+    }
+  }
+}
+
+.btn-outline-add {
+  border-radius: 10px;
+  border: 1.5px dashed #cbd5e1;
+  color: #64748b;
+  font-weight: 600;
+
+  &:hover {
+    background-color: #f1f5f9;
+    border-color: #94a3b8;
+  }
+}
+
+.dialog-card {
+  width: 100%;
+  max-width: 480px; /* Sedikit lebih lebar untuk form input */
+  border-radius: 24px; /* Sudut lebih membulat */
+  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }
