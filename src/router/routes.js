@@ -93,11 +93,6 @@ const routes = [
     component: () => import('pages/register/RegisterPage.vue'),
   },
 
-  {
-    path: '/test',
-    component: () => import('pages/dashboard/dash.vue'),
-  },
-
   // Always leave this as last one,
   // but you can also remove it
 
