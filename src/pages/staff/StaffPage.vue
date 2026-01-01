@@ -38,14 +38,36 @@
 
         <q-table
           flat
-          :rows="rows"
+          :rows="loading ? [] : rows"
           :columns="columns"
           row-key="id"
           :filter="filter"
           class="staff-table"
-          :loading="loading"
           :pagination="{ rowsPerPage: 10 }"
         >
+          <template v-slot:no-data v-if="loading">
+            <div class="full-width">
+              <div v-for="n in 5" :key="n" class="row q-pa-md items-center border-bottom">
+                <div class="col-1 q-pr-md">
+                  <q-skeleton type="QAvatar" size="48px" />
+                </div>
+                <div class="col-3 q-pr-md">
+                  <q-skeleton type="text" width="60%" class="q-mb-sm" />
+                  <q-skeleton type="text" width="40%" />
+                </div>
+                <div class="col-3 q-pr-md">
+                  <q-skeleton type="text" width="50%" />
+                </div>
+                <div class="col-3 q-pr-md">
+                  <q-skeleton type="text" width="80%" />
+                </div>
+                <div class="col-2 row justify-center">
+                  <q-skeleton type="rect" width="60px" height="30px" />
+                </div>
+              </div>
+            </div>
+          </template>
+
           <template v-slot:body-cell-avatar="props">
             <q-td :props="props" width="80px">
               <q-avatar size="48px" color="grey-3" text-color="grey-8">
@@ -57,7 +79,6 @@
           <template v-slot:body-cell-name="props">
             <q-td :props="props">
               <div class="text-subtitle2 text-weight-bold text-grey-10">{{ props.value }}</div>
-              <!-- <div class="text-subtitle2 text-grey-6">{{ props.row.role }}</div> -->
             </q-td>
           </template>
 
@@ -137,7 +158,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStaffStore } from 'src/stores/Staff' // Ganti sesuai path store anda
+import { useStaffStore } from 'src/stores/Staff'
 import { storeToRefs } from 'pinia'
 
 const router = useRouter()
@@ -169,8 +190,12 @@ const deleteMember = (member) => {
 }
 
 const executeDelete = async () => {
-  await staffStore.deleteStaff(selectedMemberToDelete.value.id)
-  showConfirmDelete.value = false
+  try {
+    await staffStore.deleteStaff(selectedMemberToDelete.value.id)
+    showConfirmDelete.value = false
+  } catch (error) {
+    console.error('Gagal menghapus staff:', error)
+  }
 }
 </script>
 
@@ -178,21 +203,18 @@ const executeDelete = async () => {
 .staff-table {
   background: transparent;
 
-  /* Memperbesar Font Header */
   :deep(thead tr th) {
     font-size: 1rem;
     font-weight: 700;
     line-height: 1.75rem;
     letter-spacing: 0.00937em;
-
     color: #222;
     background-color: #f8f9fa;
     padding: 18px 16px;
   }
 
-  /* Memperbesar Font Isi Tabel */
   :deep(tbody tr td) {
-    font-size: 15px; /* Sama dengan halaman Manajemen Keuangan */
+    font-size: 15px;
     color: #333;
     padding: 16px;
     border-bottom: 1px solid #f5f5f5;
