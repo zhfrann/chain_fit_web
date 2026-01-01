@@ -1,30 +1,19 @@
 <template>
   <q-page class="q-pa-lg bg-grey-2">
     <q-card flat class="rounded-borders shadow-1 q-mb-xl custom-card">
-      <q-card-section class="q-pa-xl">
+      <q-card-section class="q-pa-md">
         <div class="text-h5 text-center text-weight-bolder q-mb-xl">Staff Gym</div>
 
         <div class="row q-col-gutter-md q-mb-lg items-center">
           <div class="col">
-            <q-input
-              outlined
-              dense
-              v-model="filter"
-              placeholder="Search..."
-              class="search-input"
-            >
+            <q-input outlined dense v-model="filter" placeholder="Search..." class="search-input">
               <template v-slot:prepend>
                 <q-icon name="search" size="xs" />
               </template>
             </q-input>
           </div>
           <div class="col-auto">
-            <q-btn
-              unelevated
-              class="btn-tambah q-px-lg"
-              label="Tambah"
-              @click="addMember"
-            />
+            <q-btn unelevated class="btn-tambah q-px-lg" label="Tambah" @click="addMember" />
           </div>
         </div>
 
@@ -86,9 +75,7 @@
           />
 
           <div class="text-h6 text-weight-bolder q-mb-sm">Apakah Anda yakin ingin melanjutkan?</div>
-          <div class="text-body2 text-grey-8">
-            Data staff yang dihapus tidak dapat dipulihkan.
-          </div>
+          <div class="text-body2 text-grey-8">Data staff yang dihapus tidak dapat dipulihkan.</div>
         </q-card-section>
 
         <q-card-actions align="center" class="q-pb-md q-gutter-x-md">
@@ -141,7 +128,7 @@ const rows = ref([
     username: 'karinagym',
     email: 'karinaaa@gmail.com',
     password: 'karina123',
-    avatarUrl: new URL('../../assets/staff/karina.jpeg', import.meta.url).href
+    avatarUrl: new URL('../../assets/staff/karina.jpeg', import.meta.url).href,
   },
   {
     id: 2,
@@ -149,7 +136,7 @@ const rows = ref([
     username: 'roragym',
     email: 'rora@gmail.com',
     password: 'rora123',
-    avatarUrl: new URL('../../assets/staff/rora.jpeg', import.meta.url).href
+    avatarUrl: new URL('../../assets/staff/rora.jpeg', import.meta.url).href,
   },
   {
     id: 3,
@@ -157,7 +144,7 @@ const rows = ref([
     username: 'rossegym',
     email: 'rosse@gmail.com',
     password: 'rosse123',
-    avatarUrl: new URL('../../assets/staff/rosse.jpeg', import.meta.url).href
+    avatarUrl: new URL('../../assets/staff/rosse.jpeg', import.meta.url).href,
   },
   {
     id: 4,
@@ -165,7 +152,7 @@ const rows = ref([
     username: 'songmingym',
     email: 'songmin@gmail.com',
     password: 'songmin123',
-    avatarUrl: new URL('../../assets/staff/songmin.jpeg', import.meta.url).href
+    avatarUrl: new URL('../../assets/staff/songmin.jpeg', import.meta.url).href,
   },
   {
     id: 5,
@@ -173,7 +160,7 @@ const rows = ref([
     username: 'wintergym',
     email: 'winter@gmail.com',
     password: 'winter123',
-    avatarUrl: new URL('../../assets/staff/wintar.jpeg', import.meta.url).href
+    avatarUrl: new URL('../../assets/staff/wintar.jpeg', import.meta.url).href,
   },
   {
     id: 6,
@@ -181,7 +168,7 @@ const rows = ref([
     username: 'jenniegym',
     email: 'jennie@gmail.com',
     password: 'jennie123',
-    avatarUrl: new URL('../../assets/staff/jennie.jpg', import.meta.url).href
+    avatarUrl: new URL('../../assets/staff/jennie.jpg', import.meta.url).href,
   },
   {
     id: 7,
@@ -189,7 +176,7 @@ const rows = ref([
     username: 'yoonjunggym',
     email: 'yoonjung@gmail.com',
     password: 'yoonjung123',
-    avatarUrl: new URL('../../assets/staff/yoonjung.jpeg', import.meta.url).href
+    avatarUrl: new URL('../../assets/staff/yoonjung.jpeg', import.meta.url).href,
   },
 ])
 
@@ -205,8 +192,8 @@ const editMember = (member) => {
       nama: member.nama,
       username: member.username,
       email: member.email,
-      avatarUrl: member.avatarUrl
-    }
+      avatarUrl: member.avatarUrl,
+    },
   })
 }
 
@@ -219,7 +206,7 @@ const deleteMember = (member) => {
 const executeDelete = () => {
   if (!selectedMemberToDelete.value) return
 
-  rows.value = rows.value.filter(r => r.id !== selectedMemberToDelete.value.id)
+  rows.value = rows.value.filter((r) => r.id !== selectedMemberToDelete.value.id)
 
   $q.notify({ type: 'positive', message: 'Anggota berhasil dihapus' })
 
