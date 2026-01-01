@@ -37,9 +37,8 @@
               <q-input
                 color="black"
                 outlined
-                v-model="email"
-                type="email"
-                placeholder="Email"
+                v-model="username"
+                placeholder="Username"
                 bg-color="white"
                 dense
                 required
@@ -57,11 +56,11 @@
               />
 
               <q-btn
-                @click="this.$router.push('/dashboard')"
                 type="submit"
                 label="Login"
                 class="full-width btn-continue"
                 unelevated
+                :loading="loading"
               />
             </q-form>
 
@@ -101,20 +100,51 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
+import { useAuthStore } from '../../stores/Auth' // Pastikan path benar
 
 const router = useRouter()
 const $q = useQuasar()
+const authStore = useAuthStore() // Inisialisasi store
 
-const email = ref('')
+const username = ref('')
 const password = ref('')
+const loading = ref(false) // State untuk loading button
 
-const handleLogin = () => {
-  $q.notify({
-    message: 'Login berhasil!',
-    color: 'positive',
-    icon: 'check_circle',
-  })
-  router.push('/dashboard')
+const handleLogin = async () => {
+  loading.value = true
+  try {
+    // 1. Log data sebelum dikirim
+    console.log('Mengirim data login:', { username: username.value, password: password.value })
+
+    const res = await authStore.login({
+      username: username.value,
+      password: password.value,
+    })
+
+    // 2. Log hasil kembalian dari Store
+    console.log('Login Berhasil! Response:', res)
+    console.log('Token yang didapat:', res.data.access_token)
+
+    $q.notify({
+      message: 'Selamat Datang Kembali!',
+      color: 'positive',
+      icon: 'check_circle',
+      position: 'top',
+    })
+
+    router.push('/dashboard')
+  } catch (error) {
+    // Mengambil pesan error dari field 'message' atau 'errors' sesuai struktur API kamu
+    const errorMsg = error.response?.data?.message || 'Login Gagal, periksa username/password'
+    $q.notify({
+      message: errorMsg,
+      color: 'negative',
+      icon: 'warning',
+      position: 'top',
+    })
+  } finally {
+    loading.value = false
+  }
 }
 
 const socialRedirect = () => {

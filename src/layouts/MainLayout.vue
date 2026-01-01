@@ -13,7 +13,9 @@
           <q-avatar size="35px">
             <img src="https://i.scdn.co/image/ab67616d00001e02d45ec66aa3cf3864205fd068" />
           </q-avatar>
-          <span class="text-weight-medium q-ml-xs">John Doe</span>
+          <span class="text-weight-medium q-ml-xs">
+            {{ authStore.user?.name || 'Tamu' }}
+          </span>
         </div>
       </q-toolbar>
     </q-header>
@@ -58,6 +60,7 @@
         <div class="text-caption text-weight-bold q-mb-xs">Gym</div>
         <div class="row no-wrap q-gutter-xs">
           <q-select
+            :disable="authStore.gyms.length === 0"
             outlined
             dense
             v-model="selectedGym"
@@ -91,6 +94,7 @@
           <q-item-section>add</q-item-section>
         </q-item>
         <q-item
+          :disable="authStore.gyms.length === 0"
           v-for="link in menuLinks"
           :key="link.title"
           clickable
@@ -117,7 +121,7 @@
           label="Logout"
           no-caps
           align="left"
-          @click="this.$router.push('/login')"
+          @click="handleLogout"
         />
       </div>
     </q-drawer>
@@ -129,16 +133,57 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue' // Tambahkan onMounted & computed
 import { useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
+import { useAuthStore } from '../stores/Auth'
+
+const router = useRouter()
+const $q = useQuasar()
+const authStore = useAuthStore()
 
 const leftDrawerOpen = ref(true)
 const miniState = ref(false)
-const selectedGym = ref('Tidak Ada Gym')
-const gymOptions = ['Urban Gym', 'Elite Fitness', 'Tidak Ada Gym']
 
-const router = useRouter()
-const goToDaftarGym = () => { router.push('/daftar-gym') }
+// State untuk Gym
+const selectedGym = ref(null)
+const gymOptions = ref([])
+
+onMounted(async () => {
+  try {
+    // Ambil data dari API melalui store
+    await authStore.fetchUser()
+
+    // Map data gym dari store ke q-select options
+    gymOptions.value = authStore.gyms.map((gym) => ({
+      label: gym.name,
+      value: gym.id,
+    }))
+
+    // Set default gym yang tampil (misal ambil yang pertama)
+    if (gymOptions.value.length > 0) {
+      selectedGym.value = gymOptions.value[0]
+    }
+  } catch (error) {
+    // Jika gagal ambil user (token invalid), biasanya lari ke login
+    console.error('Gagal memuat data user', error)
+  }
+})
+
+const handleLogout = () => {
+  $q.dialog({
+    title: 'Konfirmasi',
+    message: 'Apakah anda yakin ingin keluar?',
+    cancel: true,
+    persistent: true,
+  }).onOk(() => {
+    authStore.logout()
+    $q.notify({ type: 'positive', message: 'Berhasil keluar' })
+    router.push('/login')
+  })
+}
+
+const goToDaftarGym = () => router.push('/daftar-gym')
 
 const menuLinks = [
   { title: 'Dashboard', icon: 'grid_view', to: '/dashboard' },
