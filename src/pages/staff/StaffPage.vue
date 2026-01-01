@@ -26,7 +26,7 @@
               outlined
               dense
               v-model="filter"
-              placeholder="Cari nama, username, atau email..."
+              placeholder="Cari nama atau email..."
               class="search-input"
             >
               <template v-slot:prepend>
@@ -43,27 +43,34 @@
           row-key="id"
           :filter="filter"
           class="staff-table"
+          :loading="loading"
           :pagination="{ rowsPerPage: 10 }"
         >
           <template v-slot:body-cell-avatar="props">
-            <q-td :props="props" width="60px">
-              <q-avatar size="42px" class="shadow-1">
-                <img :src="props.row.avatarUrl" />
+            <q-td :props="props" width="80px">
+              <q-avatar size="48px" color="grey-3" text-color="grey-8">
+                <q-icon name="person" size="28px" />
               </q-avatar>
             </q-td>
           </template>
 
-          <template v-slot:body-cell-nama="props">
+          <template v-slot:body-cell-name="props">
             <q-td :props="props">
-              <div class="text-weight-bold text-small">{{ props.value }}</div>
-              <div class="text-caption text-grey-6">{{ props.row.username }}</div>
+              <div class="text-subtitle2 text-weight-bold text-grey-10">{{ props.value }}</div>
+              <!-- <div class="text-subtitle2 text-grey-6">{{ props.row.role }}</div> -->
+            </q-td>
+          </template>
+
+          <template v-slot:body-cell-role="props">
+            <q-td :props="props">
+              <div class="text-subtitle2 text-grey-8">{{ props.value }}</div>
             </q-td>
           </template>
 
           <template v-slot:body-cell-email="props">
             <q-td :props="props">
               <div
-                class="text-blue-8 text-weight-medium text-medium"
+                class="text-subtitle2 text-blue-8 text-weight-medium"
                 style="text-decoration: underline"
               >
                 {{ props.value }}
@@ -72,13 +79,25 @@
           </template>
 
           <template v-slot:body-cell-actions="props">
-            <q-td :props="props" class="text-center">
-              <q-btn flat round color="blue-7" icon="edit" @click="editMember(props.row)">
-                <q-tooltip>Edit Data</q-tooltip>
-              </q-btn>
-              <q-btn flat round color="negative" icon="delete" @click="deleteMember(props.row)">
-                <q-tooltip>Hapus Staff</q-tooltip>
-              </q-btn>
+            <q-td :props="props">
+              <div class="row no-wrap justify-center q-gutter-x-sm">
+                <q-btn
+                  flat
+                  round
+                  color="blue-7"
+                  icon="edit"
+                  size="md"
+                  @click="editMember(props.row)"
+                />
+                <q-btn
+                  flat
+                  round
+                  color="negative"
+                  icon="delete"
+                  size="md"
+                  @click="deleteMember(props.row)"
+                />
+              </div>
             </q-td>
           </template>
         </q-table>
@@ -88,7 +107,6 @@
     <q-dialog v-model="showConfirmDelete" persistent>
       <q-card class="dialog-card q-pa-md">
         <q-btn icon="close" flat round dense v-close-popup class="close-btn text-grey-6" />
-
         <q-card-section class="text-center q-pt-lg">
           <q-img
             src="../../assets/popup/hapus.png"
@@ -97,12 +115,10 @@
           />
           <div class="text-h6 text-weight-bolder">Hapus Data Staff?</div>
           <div class="text-body2 text-grey-7 q-mt-sm">
-            Tindakan ini akan menghapus akses staff
-            <strong>{{ selectedMemberToDelete?.nama }}</strong
-            >. Data yang dihapus tidak dapat dipulihkan.
+            Hapus staff <strong>{{ selectedMemberToDelete?.name }}</strong
+            >? Data tidak dapat dipulihkan.
           </div>
         </q-card-section>
-
         <q-card-actions align="center" class="q-pb-lg q-gutter-x-md">
           <q-btn flat label="Batal" v-close-popup class="btn-dialog-flat" no-caps />
           <q-btn
@@ -119,139 +135,88 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { useQuasar } from 'quasar'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useStaffStore } from 'src/stores/Staff' // Ganti sesuai path store anda
+import { storeToRefs } from 'pinia'
 
-const $q = useQuasar()
 const router = useRouter()
+const staffStore = useStaffStore()
+const { rows, loading } = storeToRefs(staffStore)
+
 const filter = ref('')
 const showConfirmDelete = ref(false)
 const selectedMemberToDelete = ref(null)
 
 const columns = [
   { name: 'avatar', align: 'left', label: '', field: 'avatar' },
-  { name: 'nama', align: 'left', label: 'Informasi Staff', field: 'nama', sortable: true },
+  { name: 'name', align: 'left', label: 'Nama', field: 'name', sortable: true },
+  { name: 'role', align: 'left', label: 'Role', field: 'role', sortable: true },
   { name: 'email', align: 'left', label: 'Email', field: 'email', sortable: true },
-  { name: 'password', align: 'left', label: 'Password', field: 'password' },
   { name: 'actions', align: 'center', label: 'Opsi', field: 'actions' },
 ]
 
-const rows = ref([
-  {
-    id: 1,
-    nama: 'Karina',
-    username: 'karinagym',
-    email: 'karinaaa@gmail.com',
-    password: 'karina123',
-    avatarUrl: new URL('../../assets/staff/karina.jpeg', import.meta.url).href,
-  },
-  {
-    id: 2,
-    nama: 'Rora',
-    username: 'roragym',
-    email: 'rora@gmail.com',
-    password: 'rora123',
-    avatarUrl: new URL('../../assets/staff/rora.jpeg', import.meta.url).href,
-  },
-  {
-    id: 3,
-    nama: 'Rosse',
-    username: 'rossegym',
-    email: 'rosse@gmail.com',
-    password: 'rosse123',
-    avatarUrl: new URL('../../assets/staff/rosse.jpeg', import.meta.url).href,
-  },
-  {
-    id: 4,
-    nama: 'Song Min',
-    username: 'songmingym',
-    email: 'songmin@gmail.com',
-    password: 'songmin123',
-    avatarUrl: new URL('../../assets/staff/songmin.jpeg', import.meta.url).href,
-  },
-  {
-    id: 5,
-    nama: 'Winter',
-    username: 'wintergym',
-    email: 'winter@gmail.com',
-    password: 'winter123',
-    avatarUrl: new URL('../../assets/staff/wintar.jpeg', import.meta.url).href,
-  },
-  {
-    id: 6,
-    nama: 'Jennie',
-    username: 'jenniegym',
-    email: 'jennie@gmail.com',
-    password: 'jennie123',
-    avatarUrl: new URL('../../assets/staff/jennie.jpg', import.meta.url).href,
-  },
-  {
-    id: 7,
-    nama: 'Yoon Jung',
-    username: 'yoonjunggym',
-    email: 'yoonjung@gmail.com',
-    password: 'yoonjung123',
-    avatarUrl: new URL('../../assets/staff/yoonjung.jpeg', import.meta.url).href,
-  },
-])
+onMounted(() => {
+  staffStore.fetchStaffData()
+})
 
 const addMember = () => router.push('/staff/tambah')
-
-const editMember = (member) => {
-  router.push({
-    path: `/staff/edit/${member.id}`,
-    query: { ...member },
-  })
-}
+const editMember = (member) => router.push(`/staff/edit/${member.id}`)
 
 const deleteMember = (member) => {
   selectedMemberToDelete.value = member
   showConfirmDelete.value = true
 }
 
-const executeDelete = () => {
-  rows.value = rows.value.filter((r) => r.id !== selectedMemberToDelete.value.id)
-  $q.notify({ type: 'positive', message: 'Staff berhasil dihapus' })
+const executeDelete = async () => {
+  await staffStore.deleteStaff(selectedMemberToDelete.value.id)
   showConfirmDelete.value = false
 }
 </script>
 
 <style lang="scss" scoped>
-.rounded-borders {
-  border-radius: 12px;
-}
-
-.border-bottom {
-  border-bottom: 1px solid #f0f0f0;
-}
-
 .staff-table {
   background: transparent;
+
+  /* Memperbesar Font Header */
   :deep(thead tr th) {
-    font-size: small;
-    font-weight: 800;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.75rem;
+    letter-spacing: 0.00937em;
+
+    color: #222;
     background-color: #f8f9fa;
-    color: #333;
-    border-bottom: 1px solid #eee;
-    padding: 16px;
+    padding: 18px 16px;
   }
+
+  /* Memperbesar Font Isi Tabel */
   :deep(tbody tr td) {
+    font-size: 15px; /* Sama dengan halaman Manajemen Keuangan */
+    color: #333;
+    padding: 16px;
     border-bottom: 1px solid #f5f5f5;
-    padding: 12px 16px;
   }
+
   :deep(tbody tr:hover) {
     background-color: #fafafa;
   }
 }
 
 .search-input {
+  font-size: 15px;
   :deep(.q-field__control) {
+    height: 48px;
     border-radius: 10px;
-    background-color: #f8f9fa;
   }
 }
 
+.rounded-borders {
+  border-radius: 12px;
+}
+.border-bottom {
+  border-bottom: 1px solid #f0f0f0;
+}
 .dialog-card {
   width: 100%;
   max-width: 440px;
