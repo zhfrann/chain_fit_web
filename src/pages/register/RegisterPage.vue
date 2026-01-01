@@ -121,11 +121,11 @@
             </div>
 
             <div class="row justify-center q-gutter-x-md q-mb-lg">
-                <q-btn flat round @click="handleGoogleLogin">
-                  <q-avatar size="32px">
-                    <img src="https://www.svgrepo.com/show/355037/google.svg" />
-                  </q-avatar>
-                </q-btn>
+              <q-btn flat round @click="handleGoogleLogin">
+                <q-avatar size="32px">
+                  <img src="https://www.svgrepo.com/show/355037/google.svg" />
+                </q-avatar>
+              </q-btn>
               <q-btn flat round @click="handleFacebookLogin">
                 <q-avatar size="32px">
                   <img src="https://www.svgrepo.com/show/452196/facebook-1.svg" />
@@ -178,18 +178,21 @@ const handleRegister = async () => {
   Object.keys(errors).forEach((key) => (errors[key] = ''))
 
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/register-owner`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/register-owner`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: form.name,
+          username: form.username,
+          password: form.password,
+          email: form.email,
+        }),
       },
-      body: JSON.stringify({
-        name: form.name,
-        username: form.username,
-        password: form.password,
-        email: form.email,
-      }),
-    })
+    )
 
     const data = await response.json()
 
@@ -227,7 +230,7 @@ const handleRegister = async () => {
 const handleGoogleLogin = async () => {
   try {
     const googleResponse = await googleTokenLogin()
-    
+
     // Fetch User Info from Google
     const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
       headers: { Authorization: `Bearer ${googleResponse.access_token}` },
@@ -238,23 +241,26 @@ const handleGoogleLogin = async () => {
     // Example: "G-Auth" + random string + "!"
     const randomString = Math.random().toString(36).slice(-8)
     const generatedPassword = `G-Auth${randomString}!`
-    
+
     // Generate username from email
     const generatedUsername = userInfo.email.split('@')[0]
 
     // Send to Backend
-    const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/register-owner`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/register-owner`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: userInfo.name,
+          username: generatedUsername,
+          password: generatedPassword,
+          email: userInfo.email,
+        }),
       },
-      body: JSON.stringify({
-        name: userInfo.name,
-        username: generatedUsername,
-        password: generatedPassword,
-        email: userInfo.email,
-      }),
-    })
+    )
 
     const data = await response.json()
 
@@ -269,23 +275,23 @@ const handleGoogleLogin = async () => {
       // If error (e.g. email already exists), show it
       throw new Error(data.message || data.data?.message || 'Gagal registrasi dengan Google')
     }
-
   } catch (error) {
     console.error('Google Login Error', error)
     $q.notify({
       message: error.message || 'Gagal login dengan Google',
       color: 'negative',
-      icon: 'error'
+      icon: 'error',
     })
   }
 }
 
 const handleFacebookLogin = () => {
-  FB.login((response) => {
-    if (response.authResponse) {
-      FB.api('/me', { fields: 'name, email' }, async (userInfo) => {
-        // console.log('Facebook User Info', userInfo)
-         try {
+  FB.login(
+    (response) => {
+      if (response.authResponse) {
+        FB.api('/me', { fields: 'name, email' }, async (userInfo) => {
+          // console.log('Facebook User Info', userInfo)
+          try {
             if (!userInfo.email) {
               throw new Error('Email tidak ditemukan di akun Facebook Anda.')
             }
@@ -293,23 +299,26 @@ const handleFacebookLogin = () => {
             // Generate compliant password
             const randomString = Math.random().toString(36).slice(-8)
             const generatedPassword = `F-Auth${randomString}!`
-            
+
             // Generate username from email
             const generatedUsername = userInfo.email.split('@')[0]
 
             // Send to Backend
-            const apiResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/register-owner`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
+            const apiResponse = await fetch(
+              `${import.meta.env.VITE_API_BASE_URL}/api/v1/auth/register-owner`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  name: userInfo.name,
+                  username: generatedUsername,
+                  password: generatedPassword,
+                  email: userInfo.email,
+                }),
               },
-              body: JSON.stringify({
-                name: userInfo.name,
-                username: generatedUsername,
-                password: generatedPassword,
-                email: userInfo.email,
-              }),
-            })
+            )
 
             const data = await apiResponse.json()
 
@@ -321,21 +330,25 @@ const handleFacebookLogin = () => {
               })
               router.push('/login')
             } else {
-              throw new Error(data.message || data.data?.message || 'Gagal registrasi dengan Facebook')
+              throw new Error(
+                data.message || data.data?.message || 'Gagal registrasi dengan Facebook',
+              )
             }
-         } catch (error) {
+          } catch (error) {
             console.error('Facebook Auth API Error', error)
             $q.notify({
               message: error.message || 'Gagal login dengan Facebook',
               color: 'negative',
-              icon: 'error'
+              icon: 'error',
             })
-         }
-      })
-    } else {
-      console.log('User cancelled login or did not fully authorize.')
-    }
-  }, { scope: 'public_profile,email' })
+          }
+        })
+      } else {
+        console.log('User cancelled login or did not fully authorize.')
+      }
+    },
+    { scope: 'public_profile,email' },
+  )
 }
 </script>
 
