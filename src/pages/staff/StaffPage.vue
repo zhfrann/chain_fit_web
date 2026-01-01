@@ -10,7 +10,7 @@
           unelevated
           label="Tambah Staff"
           icon="add"
-          color="black"
+          color="primary"
           no-caps
           class="rounded-borders q-px-md"
           @click="addMember"

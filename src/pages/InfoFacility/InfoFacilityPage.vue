@@ -12,9 +12,11 @@
             <div class="text-h5 text-weight-bold">{{ gymData.name || 'Detail Informasi Gym' }}</div>
             <q-btn
               unelevated
-              label="Edit Info"
+              label="Edit Info Gym"
+              icon="edit"
+              color="primary"
               no-caps
-              class="btn-edit q-px-lg"
+              class="rounded-borders q-px-md"
               @click="editInfo"
             />
           </div>
