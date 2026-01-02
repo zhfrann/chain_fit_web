@@ -1,8 +1,9 @@
 <template>
   <q-page class="q-pa-lg bg-grey-2">
     <q-card flat class="rounded-borders shadow-1 q-mb-lg bg-white">
-      <q-card-section class="q-pa-md row items-center justify-between">
+      <q-card-section class="header-height q-pa-md row items-center justify-between header-section">
         <div class="row items-center">
+          <div style="width: 42px" v-if="false"></div>
           <q-icon name="badge" color="black" size="32px" class="q-mr-md" />
           <div class="text-h5 text-weight-bold">Manajemen Staff Gym</div>
         </div>
@@ -71,7 +72,8 @@
           <template v-slot:body-cell-avatar="props">
             <q-td :props="props" width="80px">
               <q-avatar size="48px" color="grey-3" text-color="grey-8">
-                <q-icon name="person" size="28px" />
+                <img v-if="props.row.profileImage" :src="props.row.profileImage" />
+                <q-icon v-else name="person" size="28px" />
               </q-avatar>
             </q-td>
           </template>
@@ -147,6 +149,7 @@
             label="Ya, Hapus"
             class="btn-dialog-gradient"
             no-caps
+            :loading="deleting"
             @click="executeDelete"
           />
         </q-card-actions>
@@ -168,9 +171,10 @@ const { rows, loading } = storeToRefs(staffStore)
 const filter = ref('')
 const showConfirmDelete = ref(false)
 const selectedMemberToDelete = ref(null)
+const deleting = ref(false)
 
 const columns = [
-  { name: 'avatar', align: 'left', label: '', field: 'avatar' },
+  { name: 'avatar', align: 'left', label: '', field: 'profileImage' },
   { name: 'name', align: 'left', label: 'Nama', field: 'name', sortable: true },
   { name: 'role', align: 'left', label: 'Role', field: 'role', sortable: true },
   { name: 'email', align: 'left', label: 'Email', field: 'email', sortable: true },
@@ -182,7 +186,10 @@ onMounted(() => {
 })
 
 const addMember = () => router.push('/staff/tambah')
-const editMember = (member) => router.push(`/staff/edit/${member.id}`)
+const editMember = (member) => {
+  // Mengirim ID Gym (1) dan ID User (member.id)
+  router.push(`/staff/edit/1/${member.id}`)
+}
 
 const deleteMember = (member) => {
   selectedMemberToDelete.value = member
@@ -190,11 +197,18 @@ const deleteMember = (member) => {
 }
 
 const executeDelete = async () => {
+  if (!selectedMemberToDelete.value) return
+
+  deleting.value = true
   try {
+    // Memanggil action store dengan ID staff
     await staffStore.deleteStaff(selectedMemberToDelete.value.id)
     showConfirmDelete.value = false
   } catch (error) {
-    console.error('Gagal menghapus staff:', error)
+    console.error('Error detail:', error)
+  } finally {
+    deleting.value = false
+    selectedMemberToDelete.value = null
   }
 }
 </script>
@@ -252,7 +266,7 @@ const executeDelete = async () => {
 }
 .btn-dialog-gradient {
   width: 130px;
-  background: linear-gradient(to bottom, #a0a0a0, #666666);
+  background: black;
   color: white;
   border-radius: 12px;
   font-weight: bold;
@@ -263,5 +277,9 @@ const executeDelete = async () => {
   right: 12px;
   background-color: #f0f0f0;
   z-index: 10;
+}
+
+.header-height {
+  height: 68px;
 }
 </style>

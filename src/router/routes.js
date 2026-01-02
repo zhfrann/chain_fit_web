@@ -35,7 +35,8 @@ const routes = [
         component: () => import('pages/staff/TambahStaffPage.vue'),
       },
       {
-        path: 'staff/edit/:id',
+        // :id untuk Gym, :userId untuk Staff
+        path: 'staff/edit/:id/:userId',
         component: () => import('pages/staff/EditStaffPage.vue'),
       },
       {

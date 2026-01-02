@@ -1,91 +1,125 @@
 <template>
   <q-page class="q-pa-lg bg-grey-2">
-    <q-card flat class="rounded-borders shadow-1 custom-card">
-      <q-card-section class="q-pa-xl">
-        <div class="text-h5 text-center text-weight-bolder q-mb-xl">Edit Data Staff</div>
+    <q-card flat class="rounded-borders q-mb-lg bg-white shadow-1">
+      <q-card-section class="header-height q-pa-md row items-center justify-between">
+        <div class="row items-center">
+          <div style="width: 42px" class="row items-center justify-start">
+            <q-btn flat round icon="arrow_back" color="grey-7" size="md" dense @click="goBack" />
+          </div>
+          <q-icon name="edit" color="black" size="32px" class="q-mr-md" />
+          <div class="text-h5 text-weight-bold">Edit Staff</div>
+        </div>
 
-        <div class="row q-col-gutter-xl items-start">
+        <q-spinner-dots v-if="staffStore.loading" color="primary" size="2em" />
+      </q-card-section>
+    </q-card>
+
+    <q-card flat class="rounded-borders shadow-1 bg-white">
+      <q-card-section class="q-pa-xl">
+        <div class="row q-col-gutter-xl">
           <div class="col-12 col-md-8">
             <div class="row q-col-gutter-y-lg q-col-gutter-x-md">
               <div class="col-12 col-sm-6">
-                <div class="text-weight-bold q-mb-sm">Nama</div>
+                <div class="text-subtitle2 q-mb-xs text-weight-bold text-grey-9">Nama Lengkap</div>
                 <q-input
                   outlined
-                  dense
                   v-model="form.nama"
+                  placeholder="Masukkan nama lengkap"
+                  dense
                   class="custom-input"
                 />
               </div>
 
               <div class="col-12 col-sm-6">
-                <div class="text-weight-bold q-mb-sm">Username</div>
+                <div class="text-subtitle2 q-mb-xs text-weight-bold text-grey-9">Email</div>
                 <q-input
                   outlined
-                  dense
-                  v-model="form.username"
-                  class="custom-input"
-                />
-              </div>
-
-              <div class="col-12 col-sm-6">
-                <div class="text-weight-bold q-mb-sm">Email</div>
-                <q-input
-                  outlined
-                  dense
+                  disable
                   v-model="form.email"
+                  placeholder="email@example.com"
+                  dense
                   class="custom-input"
                 />
               </div>
 
               <div class="col-12 col-sm-6">
-                <div class="text-weight-bold q-mb-sm">Password</div>
+                <div class="text-subtitle2 q-mb-xs text-weight-bold text-grey-9">Role</div>
                 <q-input
                   outlined
+                  v-model="form.role"
                   dense
-                  type="password"
-                  v-model="form.password"
-                  class="custom-input"
+                  disable
+                  class="custom-input bg-grey-1"
+                  hint="Role tidak dapat diubah di halaman ini"
+                />
+              </div>
+
+              <div class="col-12 col-sm-6">
+                <div class="text-subtitle2 q-mb-xs text-weight-bold text-grey-9">Instansi Gym</div>
+                <q-input
+                  outlined
+                  v-model="form.gymName"
+                  dense
+                  disable
+                  class="custom-input bg-grey-1"
                 />
               </div>
             </div>
           </div>
 
-          <div class="col-12 col-md-4 flex justify-center">
-            <div class="photo-container column items-center">
+          <div class="col-12 col-md-4 flex flex-center">
+            <div class="column items-center">
+              <div class="text-subtitle2 q-mb-md text-weight-bold text-grey-9 text-center">
+                Foto Profil
+              </div>
 
-              <div class="photo-inner">
-                <q-img
-                  :src="form.avatarUrl || defaultAvatar"
-                  class="photo-box"
-                  fit="cover"
+              <div class="photo-container shadow-1">
+                <q-img :src="imagePreview || defaultPhoto" class="full-height" fit="cover">
+                  <template v-slot:error>
+                    <div class="absolute-full flex flex-center bg-grey-3 text-grey-7">
+                      <q-icon name="person" size="64px" />
+                    </div>
+                  </template>
+                </q-img>
+              </div>
+
+              <div class="row q-gutter-sm q-mt-md">
+                <q-btn
+                  unelevated
+                  round
+                  dense
+                  color="blue-7"
+                  icon="photo_camera"
+                  @click="triggerFileInput"
+                />
+                <q-btn
+                  unelevated
+                  round
+                  dense
+                  color="negative"
+                  icon="delete"
+                  :disable="!imagePreview"
+                  @click="removePhoto"
                 />
               </div>
 
-              <div class="photo-actions-row row justify-center q-mt-md q-gutter-x-sm">
-                <q-btn dense round unelevated icon="photo_camera" class="action-btn" @click="triggerFileInput" />
-                <q-btn dense round unelevated icon="edit" class="action-btn" @click="triggerFileInput" />
-                <q-btn dense round unelevated icon="delete" class="action-btn" color="negative" :disable="!form.avatarUrl" @click="removePhoto" />
-              </div>
-
               <input ref="fileInput" type="file" accept="image/*" @change="onFileChange" hidden />
+              <div class="text-caption text-grey-6 q-mt-sm">Format: JPG, PNG (Maks 2MB)</div>
             </div>
           </div>
         </div>
 
-        <div class="row justify-end q-mt-xl q-gutter-md">
+        <q-separator class="q-my-xl" />
+
+        <div class="row justify-end q-gutter-md">
+          <q-btn flat label="Batal" class="btn-dialog-flat" no-caps @click="goBack" />
           <q-btn
             unelevated
+            label="Simpan Perubahan"
+            class="btn-dialog-gradient"
             no-caps
-            label="Batal"
-            class="btn-batal q-px-xl"
-            @click="goBack"
-          />
-          <q-btn
-            unelevated
-            no-caps
-            label="Simpan"
-            class="btn-simpan q-px-xl"
-            @click="saveChanges"
+            :loading="staffStore.loading"
+            @click="submitUpdate"
           />
         </div>
       </q-card-section>
@@ -96,173 +130,132 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { useStaffStore } from 'src/stores/Staff'
 
 const router = useRouter()
 const route = useRoute()
+const staffStore = useStaffStore()
 
+// State Form
 const form = ref({
   nama: '',
-  username: '',
   email: '',
-  password: '',
-  avatarUrl: ''
+  role: '',
+  gymName: '',
 })
 
-const defaultAvatar = '../../assets/staff/rora.jpeg'
-
-onMounted(() => {
-  // Prefer query parameters (we push these from StaffPage for prefill)
-  if (route.query && route.query.nama) {
-    form.value.nama = route.query.nama
-    form.value.username = route.query.username || ''
-    form.value.email = route.query.email || ''
-    form.value.avatarUrl = route.query.avatarUrl || ''
-    form.value.password = '' // do not prefill real password
-    return
-  }
-
-  // Fallback: if an id param is present, you can fetch the staff by id here.
-  // For now we set a placeholder note if no query data available.
-  if (route.params && route.params.id) {
-    // TODO: fetch staff data by ID from API/store
-    // Example placeholder behavior:
-    form.value.nama = `Staff #${route.params.id}`
-    form.value.username = ''
-    form.value.email = ''
-    form.value.password = ''
-    form.value.avatarUrl = ''
-  }
-})
-
-// file input ref and handlers
+// Image State
+const imagePreview = ref('')
+const imageFile = ref(null)
+const defaultPhoto = 'https://cdn.quasar.dev/img/avatar.png'
 const fileInput = ref(null)
-const triggerFileInput = () => {
-  fileInput.value && fileInput.value.click()
-}
-const onFileChange = (evt) => {
-  const file = evt.target.files && evt.target.files[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = () => {
-    form.value.avatarUrl = reader.result
+
+// Params dari URL
+const gymId = route.params.id // Asumsi route: /staff/edit/:id/:userId
+const userId = route.params.userId
+
+// --- 1. PANGGIL DATA SAAT MOUNTED ---
+onMounted(async () => {
+  // Ambil parameter dari URL
+  const gId = route.params.id
+  const uId = route.params.userId
+
+  console.log('Fetching Data for Gym:', gId, 'User:', uId)
+
+  if (gId && uId) {
+    const data = await staffStore.fetchStaffById(gId, uId)
+
+    if (data) {
+      // MAPPING: Pastikan field kiri sesuai dengan form, field kanan sesuai API
+      form.value.nama = data.name || data.nama || ''
+      form.value.email = data.email || ''
+      form.value.role = data.role || ''
+      form.value.gymName = data.gym?.name || 'Instansi Gym'
+
+      // Foto Profil
+      imagePreview.value = data.profileImage || ''
+    }
+  } else {
+    console.error('Parameter ID tidak lengkap di URL')
   }
-  reader.readAsDataURL(file)
+})
+// --- handlers ---
+const triggerFileInput = () => fileInput.value.click()
+
+const onFileChange = (evt) => {
+  const file = evt.target.files[0]
+  if (!file) return
+
+  imageFile.value = file
+  imagePreview.value = URL.createObjectURL(file) // Preview instan
 }
+
 const removePhoto = () => {
-  form.value.avatarUrl = ''
+  imagePreview.value = ''
+  imageFile.value = null
   if (fileInput.value) fileInput.value.value = ''
 }
 
 const goBack = () => router.push('/staff')
 
-const saveChanges = () => {
-  console.log('Menyimpan perubahan:', form.value)
-  // Tambahkan logika update API di sini
-  goBack()
+const submitUpdate = async () => {
+  const payload = {
+    nama: form.value.nama,
+    email: form.value.email,
+    imageFile: imageFile.value, // Dikirim sebagai file asli untuk FormData
+  }
+
+  const success = await staffStore.updateStaff(gymId, userId, payload)
+  if (success) {
+    goBack()
+  }
 }
 </script>
 
 <style lang="scss" scoped>
-.custom-card {
-  border-radius: 15px;
-  max-width: 1100px;
-  margin: 0 auto;
+.rounded-borders {
+  border-radius: 12px;
 }
 
 .custom-input {
   :deep(.q-field__control) {
     border-radius: 10px;
-    background-color: white;
-    border: 1.5px solid #000;
+    background-color: #fafafa;
+    &:before {
+      border: 1px solid #e0e0e0 !important;
+    }
+    &:hover:before {
+      border-color: #222 !important;
+    }
   }
 }
 
 .photo-container {
   width: 200px;
-}
-
-/* inner box holds border and image */
-.photo-inner {
-  width: 100%;
-  height: 240px; /* Tinggi kotak */
-  border: 1.5px solid #000;
-  border-radius: 12px;
+  height: 240px;
+  border-radius: 16px;
   overflow: hidden;
+  border: 2px dashed #e0e0e0;
   background: #fff;
 }
 
-.photo-box {
-  width: 100%;
-  height: 100%;
+.btn-dialog-flat {
+  width: 140px;
+  background-color: #f0f2f5;
+  border-radius: 12px;
+  font-weight: bold;
+  color: #555;
 }
 
-.photo-actions-row {
-  width: 100%;
-}
-
-.action-btn {
-  background: #f0f0f0; /* Abu-abu terang agar kontras */
-  color: #1a1a1a;
-  width: 32px; /* Ukuran tombol lebih kecil */
-  height: 32px;
-  min-height: 32px;
-
-  /* Ukuran icon di dalam tombol */
-  :deep(.q-icon) {
-    font-size: 18px;
-  }
-}
-
-.action-btn[disabled] {
-  opacity: 0.4;
-}
-
-.action-btn.bg-negative {
-  background-color: #e53935 !important;
+.btn-dialog-gradient {
+  min-width: 180px;
+  background: black;
   color: white;
-}
-
-.photo-overlay {
-  position: absolute;
-  bottom: -22px;
-  left: 50%;
-  transform: translateX(-50%);
-  gap: 10px;
-  z-index: 10;
-}
-
-.overlay-btn {
-  background: rgba(255,255,255,0.98);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-  min-width: 34px;
-  height: 34px;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  color: #1a1a1a;
-  font-size: 16px;
-}
-
-.overlay-btn[disabled] {
-  opacity: 0.45;
-  pointer-events: none;
-}
-
-.photo-actions { display: none; }
-
-.btn-batal {
-  background-color: #e53935;
-  color: white;
-  border-radius: 10px;
+  border-radius: 12px;
   font-weight: bold;
 }
 
-.btn-simpan {
-  background-color: #1a1a1a;
-  color: white;
-  border-radius: 10px;
-  font-weight: bold;
+.header-height {
+  height: 68px;
 }
 </style>
