@@ -69,14 +69,23 @@
                   <div class="text-subtitle2 q-mb-xs text-weight-bold text-grey-9">Password</div>
                   <q-input
                     outlined
-                    type="password"
+                    :type="showPassword ? 'text' : 'password'"
                     v-model="form.password"
                     placeholder="Min. 6 karakter"
                     dense
                     class="custom-input"
                     lazy-rules
                     :rules="[(val) => val.length >= 6 || 'Minimal 6 karakter']"
-                  />
+                  >
+                    <template #append>
+                      <q-icon
+                        :name="showPassword ? 'visibility_off' : 'visibility'"
+                        class="cursor-pointer text-grey-6"
+                        @click="showPassword = !showPassword"
+                      />
+                    </template>
+                  </q-input>
+
                 </div>
               </div>
             </div>
@@ -104,12 +113,14 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { useStaffStore } from 'src/stores/Staff' // Import Store
-import { useGymStore } from 'src/stores/Gym' // Asumsi Anda punya store Gym untuk ambil ID
+import { useStaffStore } from 'src/stores/Staff'
+import { useGymStore } from 'src/stores/Gym'
 
 const router = useRouter()
 const staffStore = useStaffStore()
-const gymStore = useGymStore() // Ambil ID gym dari sini
+const gymStore = useGymStore()
+const showPassword = ref(false)
+
 
 const form = ref({
   nama: '',
@@ -121,7 +132,6 @@ const form = ref({
 const goBack = () => router.push('/staff')
 
 const submitForm = async () => {
-  // Gunakan ID gym yang dinamis, atau hardcode '1' jika API belum dinamis
   const gymId = gymStore.selectedGymId || 1
 
   const success = await staffStore.createStaff(gymId, form.value)
@@ -133,7 +143,6 @@ const submitForm = async () => {
 </script>
 
 <style lang="scss" scoped>
-/* Style tetap sama seperti sebelumnya */
 .custom-input {
   :deep(.q-field__control) {
     border-radius: 10px;
