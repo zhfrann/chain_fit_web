@@ -1,30 +1,34 @@
 <template>
   <q-page class="q-pa-lg bg-grey-2">
-
-    <!-- ================= ANGGOOTA GYM ================= -->
     <q-card flat class="card">
       <q-card-section>
         <div class="title">Anggota Gym</div>
 
-        <div class="row items-center q-mb-md">
-          <q-input
-            dense
-            outlined
-            v-model="filterAnggota"
-            placeholder="Search..."
-            class="col search-input"
-          >
-            <template #prepend>
-              <q-icon name="search" />
-            </template>
-          </q-input>
+        <div class="row items-center q-col-gutter-md q-mb-md">
+          <!-- make search input longer (takes 9/12) -->
+          <div class="col-9">
+            <q-input
+              dense
+              outlined
+              v-model="filterAnggota"
+              placeholder="Search..."
+              class="search-input-full"
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+          </div>
 
-          <q-btn
-            label="Tambah"
-            unelevated
-            class="btn-dark q-ml-md"
-            @click="goToTambahAnggota"
-          />
+          <!-- button in the remaining 3/12 -->
+          <div class="col-3 text-right">
+            <q-btn
+              label="Tambah"
+              unelevated
+              class="btn-dark"
+              @click="goToTambahAnggota"
+            />
+          </div>
         </div>
 
         <q-table
@@ -39,7 +43,7 @@
         >
           <!-- STATUS -->
           <template #body-cell-status="props">
-            <q-td>
+            <q-td :props="props">
               <q-chip
                 dense
                 class="status-chip"
@@ -52,7 +56,7 @@
 
           <!-- MASA AKTIF -->
           <template #body-cell-masaAktif="props">
-            <q-td>
+            <q-td :props="props">
               <div class="masa-aktif">
                 <span class="dot" :class="getDotClass(props.value)" />
                 {{ props.value }} hari
@@ -62,7 +66,7 @@
 
           <!-- ACTION -->
           <template #body-cell-actions="props">
-            <q-td class="text-right q-gutter-sm">
+            <q-td :props="props" class="text-right q-gutter-sm">
               <q-btn
                 unelevated
                 label="Edit"
@@ -81,42 +85,48 @@
       </q-card-section>
     </q-card>
 
-    <!-- ================= RIWAYAT ABSENSI ================= -->
     <q-card flat class="card q-mt-xl">
       <q-card-section>
         <div class="title">Riwayat Absensi</div>
 
-        <div class="row items-center q-mb-md">
-          <q-input
-            dense
-            outlined
-            v-model="filterAbsensi"
-            placeholder="Search..."
-            class="col search-input"
-          >
-            <template #prepend>
-              <q-icon name="search" />
-            </template>
-          </q-input>
+        <!-- replaced: improved responsive search/filter/button row -->
+        <div class="row items-center q-col-gutter-md q-mb-md">
 
-          <q-input
-            dense
-            outlined
-            v-model="filterTanggal"
-            placeholder="Filter Tanggal"
-            class="q-ml-md"
-            mask="####-##-##"
-          >
-            <template #append>
-              <q-icon name="event" />
-            </template>
-          </q-input>
+          <!-- SEARCH -->
+          <div class="col-6">
+            <q-input
+              dense
+              outlined
+              v-model="filterAbsensi"
+              placeholder="Search..."
+              class="search-input-full"
+            >
+              <template #prepend>
+                <q-icon name="search" />
+              </template>
+            </q-input>
+          </div>
 
-          <q-btn
-            label="Tambah"
-            unelevated
-            class="btn-dark q-ml-md"
-          />
+          <!-- FILTER TANGGAL -->
+          <div class="col-3">
+            <q-input
+              dense
+              outlined
+              v-model="filterTanggal"
+              type="date"
+            />
+
+          </div>
+
+          <!-- BUTTON -->
+<!--          <div class="col-3 text-right">-->
+<!--            <q-btn-->
+<!--              label="Tambah"-->
+<!--              unelevated-->
+<!--              class="btn-dark"-->
+<!--            />-->
+<!--          </div>-->
+
         </div>
 
         <q-table
@@ -131,63 +141,137 @@
       </q-card-section>
     </q-card>
 
+    <q-dialog v-model="showConfirmDelete" persistent>
+      <q-card class="dialog-card q-pa-md">
+        <q-btn icon="close" flat round dense v-close-popup class="close-btn text-grey-6" />
+        <q-card-section class="text-center q-pt-lg">
+          <q-img
+            src="../../assets/popup/hapus.png"
+            style="width: 140px; height: auto"
+            class="q-mb-md"
+          />
+          <div class="text-h6 text-weight-bolder">Hapus Data Anggota?</div>
+          <div class="text-body2 text-grey-7 q-mt-sm">
+            Hapus anggota <strong>{{ selectedMemberToDelete ? (selectedMemberToDelete.nama || selectedMemberToDelete.name) : '' }}</strong
+            >? Data tidak dapat dipulihkan.
+          </div>
+        </q-card-section>
+        <q-card-actions align="center" class="q-pb-lg q-gutter-x-md">
+          <q-btn flat label="Batal" v-close-popup class="btn-dialog-flat" no-caps />
+          <q-btn
+            unelevated
+            label="Ya, Hapus"
+            class="btn-dialog-gradient"
+            no-caps
+            :loading="deleting"
+            @click="executeDelete"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
   </q-page>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAnggotaStore } from 'src/stores/anggota'
+import { useQuasar } from 'quasar'                    // added
+import { useAnggotaStore } from 'src/stores/Anggota.js'
 import { storeToRefs } from 'pinia'
 
 const router = useRouter()
+const $q = useQuasar()                                // added
+
 const anggotaStore = useAnggotaStore()
 const { rows, riwayatAbsensi } = storeToRefs(anggotaStore)
 
 const GYM_ID = 1
 
-/* ================= STATE ================= */
 const filterAnggota = ref('')
 const filterAbsensi = ref('')
 const filterTanggal = ref('')
 
-/* ================= COLUMNS ================= */
+const showConfirmDelete = ref(false)
+const selectedMemberToDelete = ref(null)
+const deleting = ref(false)
+
 const columnsAnggota = [
-  { name: 'nama', label: 'Nama', field: 'nama' },
-  { name: 'email', label: 'Email', field: 'email' },
-  { name: 'status', label: 'Status Member', field: 'status' },
-  { name: 'masaAktif', label: 'Masa Aktif', field: 'masaAktif' },
-  { name: 'actions', label: '', field: 'actions' }
+  {
+    name: 'nama',
+    label: 'Nama',
+    field: 'nama',
+    align: 'left',
+    headerStyle: 'width: 22%',
+    style: 'width: 22%'
+  },
+  {
+    name: 'email',
+    label: 'Email',
+    field: 'email',
+    align: 'left',
+    headerStyle: 'width: 26%',
+    style: 'width: 26%'
+  },
+  {
+    name: 'status',
+    label: 'Status Member',
+    field: 'status',
+    align: 'center',
+    headerStyle: 'width: 16%',
+    style: 'width: 16%'
+  },
+  {
+    name: 'masaAktif',
+    label: 'Masa Aktif',
+    field: 'masaAktif',
+    align: 'center',
+    headerStyle: 'width: 16%',
+    style: 'width: 16%'
+  },
+  {
+    name: 'actions',
+    label: '',
+    field: 'actions',
+    align: 'right',
+    headerStyle: 'width: 20%',
+    style: 'width: 20%'
+  }
 ]
 
 const columnsAbsensi = [
-  { name: 'tanggal', label: 'yyyy-MM-dd', field: 'tanggal' },
-  { name: 'waktu', label: 'Waktu', field: 'waktu' }
+  { name: 'nama', label: 'Nama', field: 'nama', align: 'left' },
+  { name: 'email', label: 'Email', field: 'email', align: 'left' },
+  { name: 'tanggal', label: 'Tanggal', field: 'tanggal', align: 'center' },
+  { name: 'waktu', label: 'Waktu', field: 'waktu', align: 'center' }
 ]
 
-/* ================= FETCH ================= */
+
 onMounted(() => {
   anggotaStore.fetchAnggota(GYM_ID)
   anggotaStore.fetchRiwayatAbsensi(GYM_ID)
 })
 
-/* ================= MAPPING ================= */
 const rowsAnggota = computed(() =>
-  rows.value.map(item => ({
+  (rows.value || []).map(item => ({
     id: item.id,
-    nama: item.name,
-    email: item.email,
-    status: item.status,
-    masaAktif: item.masaAktifHari
+    // tolerate various field names coming from API
+    nama: item.name ?? item.user?.name ?? item.nama ?? '-',
+    email: item.email ?? item.user?.email ?? '-',
+    status: item.status ?? item.state ?? '-',
+    masaAktif: item.masaAktifHari ?? item.masaAktif ?? 0
   }))
 )
 
 const mappedAbsensi = computed(() =>
   (riwayatAbsensi.value || []).map(item => {
     const date = new Date(item.checkInAt)
+
     return {
       id: item.id,
-      tanggal: date.toISOString().slice(0, 10),
+      nama: item.membership?.user?.name ?? '-',
+      email: item.membership?.user?.email ?? '-',
+      tanggal: date.toISOString().slice(0, 10), // yyyy-MM-dd
       waktu: date.toLocaleTimeString('id-ID', {
         hour: '2-digit',
         minute: '2-digit'
@@ -195,6 +279,7 @@ const mappedAbsensi = computed(() =>
     }
   })
 )
+
 
 const filteredAbsensi = computed(() => {
   let data = mappedAbsensi.value
@@ -213,10 +298,41 @@ const filteredAbsensi = computed(() => {
   return data
 })
 
-/* ================= ACTION ================= */
 const goToTambahAnggota = () => router.push('/anggota/tambah')
 const editAnggota = row => router.push(`/anggota/edit/${row.id}`)
-const deleteAnggota = row => console.log('delete', row)
+const deleteAnggota = row => {
+  if (!row) return
+
+  if (row.status === 'AKTIF') {
+    // use $q.notify (now available)
+    $q.notify({
+      type: 'negative',
+      message: 'Member masih aktif. Member Tidak Bisa di Hapus.'
+    })
+    return
+  }
+
+  selectedMemberToDelete.value = row
+  showConfirmDelete.value = true
+}
+
+
+const executeDelete = async () => {
+  if (!selectedMemberToDelete.value) return
+
+  deleting.value = true
+  try {
+    await anggotaStore.deleteAnggota(GYM_ID, selectedMemberToDelete.value.id)
+    showConfirmDelete.value = false
+    selectedMemberToDelete.value = null
+  } catch (err) {
+    console.error('Gagal menghapus anggota:', err)
+  } finally {
+    deleting.value = false
+  }
+}
+
+
 
 const getDotClass = days => {
   if (days >= 10) return 'dot-green'
@@ -241,25 +357,38 @@ const getDotClass = days => {
 
 /* TABLE */
 .custom-table :deep(th) {
+  text-align: center;
   font-weight: 800;
   font-size: 15px;
 }
 
+.custom-table :deep(th:first-child),
+.custom-table :deep(td:first-child),
+.custom-table :deep(th:nth-child(2)),
+.custom-table :deep(td:nth-child(2)) {
+  text-align: left;
+}
+
 .custom-table :deep(td) {
-  font-size: 14px;
+  vertical-align: middle;
+  white-space: nowrap;
 }
 
-/* SEARCH */
 .search-input {
-  max-width: 400px;
+  max-width: none;
+  width: 100%;
 }
 
-/* STATUS */
+.search-input-full {
+  width: 100%;
+  max-width: none;
+}
+
 .status-chip {
-  min-width: 90px;
+  min-width: 100px;
   justify-content: center;
   font-weight: 700;
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .status-aktif {
@@ -272,7 +401,6 @@ const getDotClass = days => {
   color: white;
 }
 
-/* MASA AKTIF */
 .masa-aktif {
   display: inline-flex;
   align-items: center;
@@ -293,7 +421,6 @@ const getDotClass = days => {
 .dot-orange { background: #f97316 }
 .dot-red { background: #dc2626 }
 
-/* BUTTON */
 .btn-dark {
   background: #0c0c0c;
   color: white;
@@ -311,4 +438,39 @@ const getDotClass = days => {
   color: white;
   border-radius: 10px;
 }
+
+.dialog-card {
+  width: 100%;
+  max-width: 440px;
+  border-radius: 24px;
+}
+.btn-dialog-flat {
+  width: 130px;
+  background-color: #f0f2f5;
+  border-radius: 12px;
+  font-weight: bold;
+}
+.btn-dialog-gradient {
+  width: 130px;
+  background: black;
+  color: white;
+  border-radius: 12px;
+  font-weight: bold;
+}
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background-color: #f0f0f0;
+  z-index: 10;
+}
+
+@media (max-width: 1024px) {
+  .col-9,
+  .col-3,
+  .col-6 {
+    width: 100% !important;
+  }
+}
+
 </style>

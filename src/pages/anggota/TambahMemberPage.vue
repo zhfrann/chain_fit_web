@@ -74,8 +74,24 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
+import { useGymStore } from 'src/stores/Gym'
+import { usePackageStore } from 'src/stores/Package'
+import { storeToRefs } from 'pinia'
+import { api } from 'src/boot/axios'
+
+
+const $q = useQuasar()
+
+const gymStore = useGymStore()
+const packageStore = usePackageStore()
+
+const { subscriptionPlans } = storeToRefs(packageStore)
+
+const gymId = computed(() => gymStore.selectedGymId)
+
 
 const router = useRouter()
 const form = ref({ nama: '', email: '', selectedPaket: null })
@@ -86,11 +102,33 @@ const errors = reactive({
   selectedPaket: '',
 })
 
-const paketOptions = [
-  { id: 'A', nama: 'Paket A', harga: 100000, durasi: 90 },
-  { id: 'B', nama: 'Paket B', harga: 100000, durasi: 60 },
-  { id: 'C', nama: 'Paket C', harga: 100000, durasi: 30 },
-]
+const paketOptions = computed(() =>
+  subscriptionPlans.value.map(p => ({
+    id: p.id,
+    nama: p.name,
+    harga: Number(p.price),
+    durasi: p.durationDays
+  }))
+)
+
+onMounted(async () => {
+  if (!gymId.value) {
+    console.warn('Gym ID belum tersedia')
+    return
+  }
+
+  try {
+    await packageStore.fetchPlans(gymId.value)
+  } catch (err) {
+    console.error('Gagal mengambil paket:', err)
+    $q.notify({
+      type: 'negative',
+      message: 'Gagal memuat paket gym'
+    })
+  }
+})
+
+
 
 const goBack = () => {
   router.push('/anggota')
@@ -106,51 +144,53 @@ const validateEmail = (email) => {
   return re.test(String(email).toLowerCase())
 }
 
-const submitForm = () => {
-  // reset errors
+const submitForm = async () => {
   errors.nama = ''
   errors.email = ''
   errors.selectedPaket = ''
 
-  let ok = true
-  if (!form.value.nama || !form.value.nama.trim()) {
+  if (!form.value.nama.trim()) {
     errors.nama = 'Nama wajib diisi'
-    ok = false
+    return
   }
-  if (!form.value.email || !form.value.email.trim()) {
+
+  if (!form.value.email.trim()) {
     errors.email = 'Email wajib diisi'
-    ok = false
-  } else if (!validateEmail(form.value.email)) {
-    errors.email = 'Format email tidak valid'
-    ok = false
+    return
   }
+
+  if (!validateEmail(form.value.email)) {
+    errors.email = 'Email tidak valid'
+    return
+  }
+
   if (!form.value.selectedPaket) {
     errors.selectedPaket = 'Silakan pilih paket'
-    ok = false
+    return
   }
-
-  if (!ok) return
 
   try {
-    const raw = localStorage.getItem('members')
-    const members = raw ? JSON.parse(raw) : []
-    const paket = paketOptions.find((p) => p.id === form.value.selectedPaket)
-
-    const newMember = {
-      id: Date.now(),
-      nama: form.value.nama,
+    await api.post(`/api/v1/gym/${gymId.value}/memberships`, {
+      name: form.value.nama,
       email: form.value.email,
-      status: 'Aktif',
-      masaAktif: paket.durasi,
-    }
+      paketId: form.value.selectedPaket
+    })
 
-    members.push(newMember)
-    localStorage.setItem('members', JSON.stringify(members))
-    goBack()
+    $q.notify({
+      type: 'positive',
+      message: 'Anggota berhasil ditambahkan'
+    })
+
+    router.push('//anggota')
   } catch (err) {
     console.error(err)
+    $q.notify({
+      type: 'negative',
+      message: err.response?.data?.errors?.message || 'Gagal menambah anggota'
+    })
   }
 }
+
 </script>
 
 <style lang="scss" scoped>
@@ -181,6 +221,7 @@ const submitForm = () => {
   font-weight: bold;
   height: 44px;
 }
+
 .btn-batal {
   background-color: #e53935;
   color: white;
@@ -190,7 +231,6 @@ const submitForm = () => {
   text-transform: none;
 }
 
-/* error text */
 .error-text {
   color: #ef4444;
   font-size: 13px;

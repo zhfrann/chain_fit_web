@@ -5,31 +5,33 @@ export const useAnggotaStore = defineStore('anggota', {
   state: () => ({
     rows: [],
     riwayatAbsensi: [],
+    paketMember: [],
+
     loading: false,
     loadingRiwayat: false,
+    loadingPaket: false,
+
     total: 0
   }),
 
   actions: {
-    // =============================
-    // GET LIST ANGGOTA GYM
-    // =============================
     async fetchAnggota(gymId) {
       this.loading = true
       try {
         const res = await api.get(`/api/v1/gym/${gymId}/memberships`)
 
         this.rows = res.data.data.map(item => ({
-          id: item.id,
+          id: item.id, // ID MEMBERSHIP
           name: item.user?.name ?? '-',
           email: item.user?.email ?? '-',
           status: item.status,
-          masaAktifHari: item.masaAktifHari
+          masaAktifHari: item.masaAktifHari,
+          paketId: item.paketId ?? null
         }))
 
-        this.total = res.data.recordsTotal
-      } catch (error) {
-        console.error('Gagal mengambil data anggota:', error)
+        this.total = res.data.recordsTotal ?? this.rows.length
+      } catch (err) {
+        console.error('Gagal mengambil data anggota:', err)
         this.rows = []
       } finally {
         this.loading = false
@@ -43,9 +45,9 @@ export const useAnggotaStore = defineStore('anggota', {
       this.loadingRiwayat = true
       try {
         const res = await api.get(`/api/v1/attendance/history/${gymId}`)
-        this.riwayatAbsensi = res.data.data
-      } catch (error) {
-        console.error('Gagal mengambil riwayat absensi:', error)
+        this.riwayatAbsensi = res.data.data ?? []
+      } catch (err) {
+        console.error('Gagal mengambil riwayat absensi:', err)
         this.riwayatAbsensi = []
       } finally {
         this.loadingRiwayat = false
@@ -53,18 +55,47 @@ export const useAnggotaStore = defineStore('anggota', {
     },
 
     // =============================
-    // DELETE ANGGOTA
+    // DELETE ANGGOTA (MEMBERSHIP)
     // =============================
-    async deleteAnggota(memberId) {
+    async deleteAnggota(gymId, membershipId) {
       try {
-        // try to call backend delete endpoint if available
-        await api.delete(`/api/v1/membership/${memberId}`)
-        // remove from local rows
-        this.rows = (this.rows || []).filter(r => r.id !== memberId)
+        await api.delete(`/api/v1/gym/${gymId}/memberships/${membershipId}`)
+
+        // update UI langsung
+        this.rows = this.rows.filter(r => r.id !== membershipId)
       } catch (err) {
-        // if API fails, still attempt local removal so UI can update
-        console.error('deleteAnggota error:', err)
-        this.rows = (this.rows || []).filter(r => r.id !== memberId)
+        console.error('Gagal menghapus anggota:', err)
+        throw err
+      }
+    },
+
+    // =============================
+    // GET PAKET MEMBER
+    // =============================
+    async fetchPaketMember(gymId) {
+      this.loadingPaket = true
+      try {
+        const res = await api.get(`/api/v1/gym/${gymId}/paket-member`)
+        this.paketMember = res.data.data ?? []
+      } catch (err) {
+        console.error('Gagal ambil paket member:', err)
+        this.paketMember = []
+      } finally {
+        this.loadingPaket = false
+      }
+    },
+
+
+// UPDATE MEMBERSHIP (FRONTEND HITUNG HARI)
+// =============================
+    async updateMembership(gymId, membershipId, payload) {
+      try {
+        return await api.put(
+          `/api/v1/gym/${gymId}/memberships/${membershipId}`,
+          payload
+        )
+      } catch (err) {
+        console.error('Gagal update membership:', err)
         throw err
       }
     }

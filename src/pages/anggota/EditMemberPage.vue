@@ -45,73 +45,137 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
+import { useAnggotaStore } from 'src/stores/Anggota'
+import { storeToRefs } from 'pinia'
+import { usePackageStore } from 'stores/Package.js'
+import { useGymStore } from 'src/stores/Gym'
 
+
+const gymId = computed(() => gymStore.selectedGymId)
+
+const packageStore = usePackageStore()
 const router = useRouter()
 const route = useRoute()
 const $q = useQuasar()
+const anggotaStore = useAnggotaStore()
 
-const form = ref({ id: null, selectedPaket: null })
+const { rows } = storeToRefs(anggotaStore)
 
-const errors = reactive({
-  selectedPaket: '',
+const gymStore = useGymStore()
+
+const { subscriptionPlans } = storeToRefs(packageStore)
+
+
+
+const MEMBER_ID = route.params.id
+
+const form = ref({
+  memberId: MEMBER_ID,
+  selectedPaket: null
 })
 
-const paketOptions = [
-  { id: 'A', nama: 'Paket A', harga: 100000, durasi: 90 },
-  { id: 'B', nama: 'Paket B', harga: 100000, durasi: 60 },
-  { id: 'C', nama: 'Paket C', harga: 100000, durasi: 30 },
-]
+const errors = reactive({
+  selectedPaket: ''
+})
+
+const paketOptions = computed(() =>
+  subscriptionPlans.value.map(p => ({
+    id: p.id,
+    nama: p.name,
+    harga: Number(p.price),
+    durasi: p.durationDays
+  }))
+)
 
 const goBack = () => router.push('/anggota')
 
-const selectPaket = (id) => {
+const selectPaket = id => {
   form.value.selectedPaket = id
   errors.selectedPaket = ''
 }
 
-const submitForm = () => {
-  errors.selectedPaket = ''
-
+const validate = () => {
   if (!form.value.selectedPaket) {
     errors.selectedPaket = 'Silakan pilih paket'
-    $q.notify({ type: 'warning', message: 'Silakan pilih paket terlebih dahulu' })
+    $q.notify({ type: 'warning', message: 'Pilih paket terlebih dahulu' })
     return false
   }
-
   return true
 }
 
 const onSaveClick = async () => {
-  const saved = submitForm()
-  if (!saved) return
+  if (!validate()) return
 
   try {
-    await router.push('/anggota')
-    window.dispatchEvent(new Event('members:updated'))
-  } catch (e) {
-    console.warn('Failed to navigate or dispatch event:', e)
+    const member = rows.value.find(
+      r => String(r.id) === String(MEMBER_ID)
+    )
+
+    if (!member) {
+      throw new Error('Member tidak ditemukan')
+    }
+
+    const paket = subscriptionPlans.value.find(
+      p => p.id === form.value.selectedPaket
+    )
+
+    if (!paket) {
+      throw new Error('Paket tidak ditemukan')
+    }
+
+    const masaAktifLama = Number(member.masaAktifHari ?? 0)
+    const masaAktifBaru = masaAktifLama + Number(paket.durationDays)
+
+    await anggotaStore.updateMembership(
+      gymId.value,
+      MEMBER_ID,
+      {
+        paketId: form.value.selectedPaket,
+        masaAktifHari: masaAktifBaru
+      }
+    )
+
+    $q.notify({
+      type: 'positive',
+      message: `Membership berhasil diperpanjang (+${paket.durationDays} hari)`
+    })
+
+    router.push('/anggota')
+
+  } catch (err) {
+    console.error(err)
+    $q.notify({
+      type: 'negative',
+      message: err.message || 'Gagal memperbarui membership'
+    })
   }
 }
 
-onMounted(() => {
-  const id = route.params.id
-  if (!id) return
+onMounted(async () => {
+  if (!gymId.value) {
+    console.warn('Gym ID belum tersedia')
+    return
+  }
+
   try {
-    const raw = localStorage.getItem('members')
-    const members = raw ? JSON.parse(raw) : []
-    const member = members.find(m => String(m.id) === String(id))
+    await packageStore.fetchPlans(gymId.value)
+
+    const member = rows.value.find(
+      r => String(r.id) === String(MEMBER_ID)
+    )
+
     if (member) {
-      form.value.id = member.id
-      form.value.selectedPaket = null
+      form.value.selectedPaket = member.paketId ?? null
     }
   } catch (err) {
-    console.warn('Failed to load member for edit:', err)
+    console.error('Gagal load data edit membership:', err)
   }
 })
 </script>
+
 
 <style lang="scss" scoped>
 .custom-card {
