@@ -42,7 +42,7 @@ export const useEquipmentStore = defineStore('equipment', {
           headers: { 'Content-Type': 'multipart/form-data' },
         })
 
-        return response.data
+        return response.data.data
       } catch (error) {
         console.error('Error creating equipment:', error)
         throw error
@@ -81,12 +81,24 @@ export const useEquipmentStore = defineStore('equipment', {
       try {
         this.loading = true
 
-        const response = await api.put(`/api/v1/gym/${gymId}/equipment/${equipId}`, {
-          name: payload.name,
-          jumlah: payload.jumlah.toString(), // Ubah ke String di sini
+        const fd = new FormData()
+        fd.append('name', payload.name ?? '')
+        fd.append('jumlah', String(payload.qty ?? payload.jumlah ?? 0))
+
+        if (payload.description) fd.append('description', payload.description)
+        if (payload.healthStatus) fd.append('healthStatus', payload.healthStatus)
+
+        // penting: "image" harus File (bukan URL string)
+        if (payload.imageFile instanceof File) {
+          fd.append('image', payload.imageFile)
+        }
+
+        const response = await api.put(`/api/v1/gym/${gymId}/equipment/${equipId}`, fd, {
+          // axios biasanya auto set boundary, ini optional tapi oke
+          headers: { 'Content-Type': 'multipart/form-data' },
         })
 
-        return response.data
+        return response.data.data
       } catch (error) {
         console.error('Store Update Error:', error.response?.data || error.message)
         throw error

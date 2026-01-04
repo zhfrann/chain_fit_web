@@ -5,6 +5,7 @@
         <div style="width: 42px" class="row items-center justify-start">
           <q-btn flat round icon="arrow_back" color="grey-7" size="md" dense @click="goBack" />
         </div>
+
         <q-icon name="fitness_center" color="black" size="32px" class="q-mr-md" />
         <div class="text-h5 text-weight-bold">Detail Alat Gym</div>
 
@@ -16,6 +17,7 @@
     <q-card flat class="rounded-borders shadow-1 bg-white">
       <q-card-section class="q-pa-xl">
         <div v-if="!loading" class="row q-col-gutter-lg">
+          <!-- Nama -->
           <div class="col-12">
             <div class="text-subtitle2 q-mb-xs text-weight-bold text-grey-9">Nama Alat</div>
             <q-input
@@ -26,6 +28,7 @@
             />
           </div>
 
+          <!-- Jumlah -->
           <div class="col-12 col-md-4">
             <div class="text-subtitle2 q-mb-xs text-weight-bold text-grey-9">Jumlah Unit</div>
             <q-input
@@ -41,7 +44,28 @@
             </q-input>
           </div>
 
-          <div class="col-12 col-md-8">
+          <!-- Health Status -->
+          <div class="col-12 col-md-4">
+            <div class="text-subtitle2 q-mb-xs text-weight-bold text-grey-9">Kondisi Alat</div>
+            <q-select
+              v-model="equipment.healthStatus"
+              :options="healthStatusOptions"
+              option-label="label"
+              option-value="value"
+              emit-value
+              map-options
+              outlined
+              dense
+              class="custom-input-detail"
+            >
+              <template v-slot:append>
+                <q-icon name="expand_more" />
+              </template>
+            </q-select>
+          </div>
+
+          <!-- Video URL (tetap) -->
+          <div class="col-12 col-md-4">
             <div class="text-subtitle2 q-mb-xs text-weight-bold text-grey-9">
               Video Tutorial (URL)
             </div>
@@ -67,12 +91,54 @@
               </template>
             </q-input>
           </div>
+
+          <!-- Description -->
+          <div class="col-12">
+            <div class="text-subtitle2 q-mb-xs text-weight-bold text-grey-9">Deskripsi</div>
+            <q-input
+              v-model="equipment.description"
+              type="textarea"
+              outlined
+              dense
+              autogrow
+              class="custom-input-detail"
+            />
+          </div>
+
+          <!-- Upload Image -->
+          <div class="col-12 col-md-6">
+            <div class="text-subtitle2 q-mb-xs text-weight-bold text-grey-9">
+              Foto Alat (Upload)
+            </div>
+            <q-file
+              v-model="equipment.imageFile"
+              accept="image/*"
+              outlined
+              dense
+              label="Pilih Foto"
+              class="custom-input-detail"
+            />
+            <q-img
+              v-if="imagePreview"
+              :src="imagePreview"
+              style="height: 220px"
+              class="q-mt-md rounded-borders"
+              fit="cover"
+            />
+            <div v-else class="text-caption text-grey-6 q-mt-sm">
+              * Jika tidak upload foto baru, foto lama akan tetap.
+            </div>
+          </div>
         </div>
 
+        <!-- Skeleton -->
         <div v-else class="row q-col-gutter-lg">
           <div class="col-12"><q-skeleton type="QInput" /></div>
           <div class="col-4"><q-skeleton type="QInput" /></div>
-          <div class="col-8"><q-skeleton type="QInput" /></div>
+          <div class="col-4"><q-skeleton type="QInput" /></div>
+          <div class="col-4"><q-skeleton type="QInput" /></div>
+          <div class="col-12"><q-skeleton type="QInput" /></div>
+          <div class="col-6"><q-skeleton type="QInput" /></div>
         </div>
 
         <q-separator class="q-my-xl" />
@@ -104,6 +170,7 @@
       </q-card-section>
     </q-card>
 
+    <!-- Confirm Update -->
     <q-dialog v-model="showConfirmUpdate" persistent>
       <q-card class="dialog-card q-pa-md">
         <q-btn icon="close" flat round dense v-close-popup class="close-btn text-grey-6" />
@@ -129,6 +196,7 @@
       </q-card>
     </q-dialog>
 
+    <!-- Confirm Delete -->
     <q-dialog v-model="showConfirmDelete" persistent>
       <q-card class="dialog-card q-pa-md">
         <q-btn icon="close" flat round dense v-close-popup class="close-btn text-grey-6" />
@@ -161,7 +229,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted } from 'vue'
+import { reactive, ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useGymStore } from 'src/stores/Gym'
@@ -179,11 +247,31 @@ const loading = ref(false)
 const deleteLoading = ref(false)
 const updateLoading = ref(false)
 
+const healthStatusOptions = [
+  { label: 'Baik', value: 'BAIK' },
+  { label: 'Butuh Perawatan', value: 'BUTUH_PERAWATAN' },
+  { label: 'Rusak', value: 'RUSAK' },
+]
+
 const equipment = reactive({
   id: null,
   name: '',
   jumlah: 0,
   videoURL: '',
+
+  description: '',
+  healthStatus: 'BAIK',
+
+  // Upload file
+  imageFile: null,
+
+  // Preview foto lama dari BE (URL)
+  imageUrl: '',
+})
+
+const imagePreview = computed(() => {
+  if (equipment.imageFile instanceof File) return URL.createObjectURL(equipment.imageFile)
+  return equipment.imageUrl || ''
 })
 
 const fetchDetail = async () => {
@@ -194,8 +282,21 @@ const fetchDetail = async () => {
   loading.value = true
   try {
     const data = await equipmentStore.fetchEquipmentDetail(gymId, equipId)
-    Object.assign(equipment, data)
-  } catch {
+
+    // Mapping aman (karena response BE bisa beda nama field)
+    equipment.id = data.id ?? data.equipId ?? equipId
+    equipment.name = data.name ?? ''
+    equipment.jumlah = Number(data.jumlah ?? data.qty ?? 0)
+
+    equipment.videoURL = data.videoURL ?? data.videoUrl ?? data.video ?? ''
+    equipment.description = data.description ?? ''
+    equipment.healthStatus = data.healthStatus ?? data.status ?? 'BAIK'
+
+    // url foto dari BE (sesuaikan jika field kamu beda)
+    equipment.imageUrl = data.imageUrl ?? data.image ?? data.photoUrl ?? ''
+    equipment.imageFile = null
+  } catch (e) {
+    console.error(e)
     $q.notify({ type: 'negative', message: 'Gagal mengambil data' })
   } finally {
     loading.value = false
@@ -204,7 +305,7 @@ const fetchDetail = async () => {
 
 const handleUpdate = async () => {
   const gymId = gymStore.selectedGymId
-  const equipId = equipment.id // Pastikan ID alat tersedia
+  const equipId = equipment.id ?? route.params.id
 
   if (!gymId || !equipId) {
     $q.notify({ type: 'warning', message: 'Data ID tidak ditemukan' })
@@ -215,19 +316,23 @@ const handleUpdate = async () => {
   try {
     const payload = {
       name: equipment.name,
-      jumlah: equipment.jumlah,
+      qty: equipment.jumlah, // store updateEquipment akan kirim sebagai "jumlah"
+      description: equipment.description,
+      healthStatus: equipment.healthStatus,
+      imageFile: equipment.imageFile, // File (optional)
     }
 
     await equipmentStore.updateEquipment(gymId, equipId, payload)
 
     $q.notify({
       type: 'positive',
-      message: 'Berhasil memperbarui nama dan jumlah alat',
+      message: 'Berhasil memperbarui data alat',
       position: 'top',
     })
 
     showConfirmUpdate.value = false
-    await fetchDetail() // Refresh data dari server
+    await fetchDetail()
+    router.back()
   } catch (error) {
     console.error('Component Update Error:', error)
     $q.notify({
@@ -244,10 +349,11 @@ const handleDelete = async () => {
   const gymId = gymStore.selectedGymId
   deleteLoading.value = true
   try {
-    await equipmentStore.deleteEquipment(gymId, equipment.id)
+    await equipmentStore.deleteEquipment(gymId, equipment.id ?? route.params.id)
     $q.notify({ type: 'positive', message: 'Alat berhasil dihapus' })
     router.push('/info')
-  } catch {
+  } catch (e) {
+    console.error(e)
     $q.notify({ type: 'negative', message: 'Gagal menghapus alat' })
   } finally {
     deleteLoading.value = false
@@ -258,6 +364,7 @@ const handleDelete = async () => {
 const openLink = (url) => {
   if (url) window.open(url, '_blank')
 }
+
 const goBack = () => router.back()
 
 onMounted(fetchDetail)
