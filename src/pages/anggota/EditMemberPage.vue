@@ -73,6 +73,7 @@ const errors = reactive({
   selectedPaket: ''
 })
 
+// Opsi paket untuk ditampilkan
 const paketOptions = computed(() =>
   subscriptionPlans.value.map(p => ({
     id: p.id,
@@ -82,13 +83,16 @@ const paketOptions = computed(() =>
   }))
 )
 
+// Kembali ke halaman anggota
 const goBack = () => router.push('/anggota')
 
+// Pilih paket
 const selectPaket = id => {
   form.value.selectedPaket = id
   errors.selectedPaket = ''
 }
 
+// Validasi form
 const validate = () => {
   if (!form.value.selectedPaket) {
     errors.selectedPaket = 'Silakan pilih paket'
@@ -98,6 +102,7 @@ const validate = () => {
   return true
 }
 
+// Simpan perubahan membership
 const onSaveClick = async () => {
   if (!validate()) return
 
@@ -118,6 +123,7 @@ const onSaveClick = async () => {
       throw new Error('Paket tidak ditemukan')
     }
 
+    // Hitung masa aktif baru
     const masaAktifLama = Number(member.masaAktifHari ?? 0)
     const masaAktifBaru = masaAktifLama + Number(paket.durationDays)
 
@@ -146,6 +152,7 @@ const onSaveClick = async () => {
   }
 }
 
+// Load paket dan data member saat mounted
 onMounted(async () => {
   if (!gymId.value) {
     console.warn('Gym ID belum tersedia')

@@ -34,6 +34,7 @@ export const useAnggotaStore = defineStore('anggota', {
       }
     },
 
+    // Fetch riwayat absensi anggota berdasarkan gymId
     async fetchRiwayatAbsensi(gymId) {
       this.loadingRiwayat = true
       try {
@@ -47,6 +48,7 @@ export const useAnggotaStore = defineStore('anggota', {
       }
     },
 
+    // Menghapus anggota berdasarkan membershipId
     async deleteAnggota(gymId, membershipId) {
       try {
         await api.delete(`/api/v1/gym/${gymId}/memberships/${membershipId}`)
@@ -60,6 +62,7 @@ export const useAnggotaStore = defineStore('anggota', {
       }
     },
 
+    // Memperbarui data membership anggota
     async updateMembership(gymId, membershipId, payload) {
       try {
         return await api.put(
@@ -75,6 +78,7 @@ export const useAnggotaStore = defineStore('anggota', {
       }
     },
 
+    // Menambah absensi anggota
     async createAbsensi(membershipId) {
       try {
         await api.post('/api/v1/attendance', {

@@ -106,6 +106,7 @@
               type="date"
             />
           </div>
+
         </div>
 
         <q-table
@@ -119,6 +120,7 @@
         />
       </q-card-section>
     </q-card>
+
     <q-dialog v-model="showConfirmDelete" persistent>
       <q-card class="dialog-card q-pa-md">
         <q-btn icon="close" flat round dense v-close-popup class="close-btn text-grey-6" />
@@ -146,6 +148,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
   </q-page>
 </template>
 
@@ -172,13 +175,20 @@ const showConfirmDelete = ref(false)
 const selectedMemberToDelete = ref(null)
 const deleting = ref(false)
 
+// STATE UNTUK ABSENSI
 // const showAddAbsensi = ref(false)
+// const absensiForm = ref({
+//   membershipId: null
+// })
 
+// CONFIG PAGINATION TABLE
 const paginationConfig = ref({
   rowsPerPage: 10,
   page: 1
 })
 
+
+// DEFINISI KOLOM TABLE
 const columnsAnggota = [
   { name: 'nama', label: 'Nama', field: 'nama', align: 'left' },
   { name: 'email', label: 'Email', field: 'email', align: 'left' },
@@ -187,6 +197,7 @@ const columnsAnggota = [
   { name: 'actions', label: '', field: 'actions', align: 'right' }
 ]
 
+// KOLOM TABLE ABSENSI
 const columnsAbsensi = [
   { name: 'nama', label: 'Nama', field: 'nama', align: 'left' },
   { name: 'email', label: 'Email', field: 'email', align: 'left' },
@@ -194,6 +205,7 @@ const columnsAbsensi = [
   { name: 'waktu', label: 'Waktu', field: 'waktu', align: 'center' }
 ]
 
+// FETCH DATA ANGGOTA DAN ABSENSI SAAT MOUNTING
 onMounted(() => {
   if (gymId.value) {
     anggotaStore.fetchAnggota(gymId.value)
@@ -201,6 +213,7 @@ onMounted(() => {
   }
 })
 
+// MAPPING DATA ANGGOTA UNTUK TABLE
 const rowsAnggota = computed(() =>
   (rows.value || []).map(item => ({
     id: item.id,
@@ -211,6 +224,7 @@ const rowsAnggota = computed(() =>
   }))
 )
 
+// MAPPING DATA ABSENSI UNTUK TABLE
 const mappedAbsensi = computed(() =>
   (riwayatAbsensi.value || []).map(item => {
     const date = new Date(item.checkInAt)
@@ -224,6 +238,7 @@ const mappedAbsensi = computed(() =>
   })
 )
 
+// FILTERING ABSENSI
 const filteredAbsensi = computed(() => {
   let data = mappedAbsensi.value
   if (filterTanggal.value) {
@@ -239,12 +254,13 @@ const filteredAbsensi = computed(() => {
   return data
 })
 
+// NAVIGASI TAMBAH, EDIT, DELETE ANGGOTA
 const goToTambahAnggota = () => router.push('/anggota/tambah')
 const editAnggota = row => router.push(`/anggota/edit/${row.id}`)
 
+// FUNGSI DELETE ANGGOTA
 const deleteAnggota = row => {
   if (!row) return
-  // Validasi: Member aktif biasanya tidak boleh dihapus demi integritas data
   if (row.status === 'AKTIF') {
     $q.notify({
       type: 'negative',
@@ -256,6 +272,7 @@ const deleteAnggota = row => {
   showConfirmDelete.value = true
 }
 
+// EKSEKUSI DELETE ANGGOTA
 const executeDelete = async () => {
   if (!selectedMemberToDelete.value) return
   deleting.value = true
@@ -271,12 +288,47 @@ const executeDelete = async () => {
   }
 }
 
+// FUNGSI SUBMIT ABSENSI
+// const submitAbsensi = async () => {
+//   if (!absensiForm.value.membershipId) {
+//     $q.notify({
+//       type: 'negative',
+//       message: 'Silakan pilih member'
+//     })
+//     return
+//   }
+//
+//   try {
+//     await anggotaStore.createAbsensi(
+//       absensiForm.value.membershipId
+//     )
+//
+//     await anggotaStore.fetchRiwayatAbsensi(gymId.value)
+//
+//     showAddAbsensi.value = false
+//     absensiForm.value.membershipId = null
+//
+//     $q.notify({
+//       type: 'positive',
+//       message: 'Absensi berhasil ditambahkan'
+//     })
+//   } catch (err) {
+//     console.error(err)
+//     $q.notify({
+//       type: 'negative',
+//       message: 'Gagal menambahkan absensi'
+//     })
+//   }
+// }
+
+// FUNGSI UNTUK MENDAPATKAN CLASS DOT BERDASARKAN MASA AKTIF
 const getDotClass = days => {
   if (days >= 10) return 'dot-green'
   if (days > 0) return 'dot-orange'
   return 'dot-red'
 }
 
+// WATCHER GYM ID UNTUK RE-FETCH DATA SAAT GYM BERUBAH
 watch(gymId, (newId) => {
   if (newId) {
     anggotaStore.fetchAnggota(newId)
@@ -307,7 +359,7 @@ watch(gymId, (newId) => {
 
 .custom-table :deep(.q-table__bottom) {
   border-top: 1px solid #edf2f7;
-  justify-content: center; /* Merapikan posisi pagination */
+  justify-content: center;
 }
 
 .search-input-full {
@@ -406,79 +458,3 @@ watch(gymId, (newId) => {
   }
 }
 </style>
-
-<!--          <div class="col-3 text-right">-->
-<!--            <q-btn-->
-<!--              label="Tambah Absensi"-->
-<!--              unelevated-->
-<!--              icon="add"-->
-<!--              class="btn-dark"-->
-<!--              @click="showAddAbsensi = true"-->
-<!--            />-->
-<!--          </div>-->
-
-<!--    <q-dialog v-model="showAddAbsensi" persistent>-->
-<!--      <q-card style="width: 420px" class="q-pa-md">-->
-<!--        <div class="text-h6 q-mb-md">Tambah Absensi</div>-->
-
-<!--        <q-select-->
-<!--          v-model="absensiForm.membershipId"-->
-<!--          :options="rowsAnggota"-->
-<!--          option-label="nama"-->
-<!--          option-value="id"-->
-<!--          label="Pilih Member"-->
-<!--          outlined-->
-<!--          dense-->
-<!--          emit-value-->
-<!--          map-options-->
-<!--          class="q-mb-md"-->
-<!--        />-->
-
-<!--        <q-card-actions align="right">-->
-<!--          <q-btn flat label="Batal" v-close-popup />-->
-<!--          <q-btn-->
-<!--            label="Simpan"-->
-<!--            color="primary"-->
-<!--            unelevated-->
-<!--            @click="submitAbsensi"-->
-<!--          />-->
-<!--        </q-card-actions>-->
-<!--      </q-card>-->
-<!--    </q-dialog>-->
-
-<!--// const submitAbsensi = async () => {-->
-<!--//   if (!absensiForm.value.membershipId) {-->
-<!--//     $q.notify({-->
-<!--//       type: 'negative',-->
-<!--//       message: 'Silakan pilih member'-->
-<!--//     })-->
-<!--//     return-->
-<!--//   }-->
-<!--//-->
-<!--//   try {-->
-<!--//     await anggotaStore.createAbsensi(-->
-<!--//       absensiForm.value.membershipId-->
-<!--//     )-->
-<!--//-->
-<!--//-->
-<!--//     await anggotaStore.fetchRiwayatAbsensi(gymId.value)-->
-<!--//-->
-<!--//     showAddAbsensi.value = false-->
-<!--//     absensiForm.value.membershipId = null-->
-<!--//-->
-<!--//     $q.notify({-->
-<!--//       type: 'positive',-->
-<!--//       message: 'Absensi berhasil ditambahkan'-->
-<!--//     })-->
-<!--//   } catch (err) {-->
-<!--//     console.error(err)-->
-<!--//     $q.notify({-->
-<!--//       type: 'negative',-->
-<!--//       message: 'Gagal menambahkan absensi'-->
-<!--//     })-->
-<!--//   }-->
-<!--// }-->
-
-<!--// const absensiForm = ref({-->
-<!--//   membershipId: null-->
-<!--// })-->

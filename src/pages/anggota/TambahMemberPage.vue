@@ -116,19 +116,21 @@ const { subscriptionPlans } = storeToRefs(packageStore)
 
 const gymId = computed(() => gymStore.selectedGymId)
 
+// Form data and errors
 const form = ref({
   nama: '',
   email: '',
   selectedPaket: null
 })
 
+// Validation errors
 const errors = reactive({
   nama: '',
   email: '',
   selectedPaket: ''
 })
 
-
+// Fetch subscription plans on mount
 onMounted(async () => {
   if (!gymId.value) {
     $q.notify({
@@ -150,6 +152,7 @@ onMounted(async () => {
   }
 })
 
+// Computed paket options
 const paketOptions = computed(() =>
   (subscriptionPlans.value || []).map(p => ({
     id: p.id,
@@ -159,19 +162,23 @@ const paketOptions = computed(() =>
   }))
 )
 
+// Navigation and form handlers
 const goBack = () => {
   router.push('/anggota')
 }
 
+// Select paket
 const selectPaket = (id) => {
   form.value.selectedPaket = id
   errors.selectedPaket = ''
 }
 
+// Email validation
 const validateEmail = (email) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
+// Submit form
 const submitForm = async () => {
   errors.nama = ''
   errors.email = ''
@@ -270,10 +277,6 @@ const submitForm = async () => {
 }
 </style>
 
-
-// const absensiForm = ref({
-//   membershipId: null
-// })
 
 
 
