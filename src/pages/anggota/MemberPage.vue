@@ -159,18 +159,26 @@ import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useAnggotaStore } from 'src/stores/Anggota.js'
 import { storeToRefs } from 'pinia'
+import { watch } from 'vue'
+import { useGymStore } from 'src/stores/Gym'
+
+
 
 const router = useRouter()
 const $q = useQuasar()
 const anggotaStore = useAnggotaStore()
 const { rows, riwayatAbsensi } = storeToRefs(anggotaStore)
-const GYM_ID = 1
 const filterAnggota = ref('')
 const filterAbsensi = ref('')
 const filterTanggal = ref('')
 const showConfirmDelete = ref(false)
 const selectedMemberToDelete = ref(null)
 const deleting = ref(false)
+const gymStore = useGymStore()
+
+const gymId = computed(() => gymStore.selectedGymId)
+
+
 
 const columnsAnggota = [
   {
@@ -223,9 +231,18 @@ const columnsAbsensi = [
 ]
 
 onMounted(() => {
-  anggotaStore.fetchAnggota(GYM_ID)
-  anggotaStore.fetchRiwayatAbsensi(GYM_ID)
+  if (!gymId.value) {
+    $q.notify({
+      type: 'negative',
+      message: 'Gym belum dipilih'
+    })
+    return
+  }
+
+  anggotaStore.fetchAnggota(gymId.value)
+  anggotaStore.fetchRiwayatAbsensi(gymId.value)
 })
+
 
 const rowsAnggota = computed(() =>
   (rows.value || []).map(item => ({
@@ -294,7 +311,10 @@ const executeDelete = async () => {
 
   deleting.value = true
   try {
-    await anggotaStore.deleteAnggota(GYM_ID, selectedMemberToDelete.value.id)
+    await anggotaStore.deleteAnggota(
+      gymId.value,
+      selectedMemberToDelete.value.id
+    )
     showConfirmDelete.value = false
     selectedMemberToDelete.value = null
   } catch (err) {
@@ -309,6 +329,13 @@ const getDotClass = days => {
   if (days > 0) return 'dot-orange'
   return 'dot-red'
 }
+
+watch(gymId, (newId) => {
+  if (newId) {
+    anggotaStore.fetchAnggota(newId)
+    anggotaStore.fetchRiwayatAbsensi(newId)
+  }
+})
 
 </script>
 

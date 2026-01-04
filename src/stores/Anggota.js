@@ -21,7 +21,7 @@ export const useAnggotaStore = defineStore('anggota', {
         const res = await api.get(`/api/v1/gym/${gymId}/memberships`)
 
         this.rows = res.data.data.map(item => ({
-          id: item.id, // ID MEMBERSHIP
+          id: item.id,
           name: item.user?.name ?? '-',
           email: item.user?.email ?? '-',
           status: item.status,

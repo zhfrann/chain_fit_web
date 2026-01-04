@@ -16,7 +16,6 @@ export const useGymStore = defineStore('gym', {
       this.selectedGymId = id
     },
 
-    // Mendaftarkan gym baru
     async registerGym(formData) {
       this.loading = true
       try {
@@ -87,14 +86,12 @@ export const useGymStore = defineStore('gym', {
       fd.append('maxCp', String(payload.maxCp ?? ''))
       fd.append('address', payload.address ?? '')
       fd.append('jamOperasional', payload.jamOperasional ?? '')
-      fd.append('description', payload.description ?? '') // ✅
+      fd.append('description', payload.description ?? '')
       fd.append('lat', String(payload.lat ?? ''))
       fd.append('long', String(payload.long ?? ''))
 
-      // fac JSON string
       fd.append('fac', JSON.stringify(payload.fac ?? []))
 
-      // tag string
       fd.append('tag', payload.tag ?? '')
 
       const res = await api.put(`/api/v1/gym/${id}`, fd)
@@ -103,7 +100,6 @@ export const useGymStore = defineStore('gym', {
       if (updated) {
         this.currentGym = updated
 
-        // ✅ sync list juga
         const idx = this.myGyms.findIndex((g) => g.id === id)
         if (idx !== -1) this.myGyms[idx] = { ...this.myGyms[idx], ...updated }
       }
