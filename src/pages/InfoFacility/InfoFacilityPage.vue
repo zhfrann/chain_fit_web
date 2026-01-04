@@ -58,21 +58,38 @@
     </template>
 
     <template v-else>
-      <q-card flat class="rounded-borders q-mb-md q-pa-md">
+      <q-card flat class="gym-card rounded-borders q-mb-md q-pa-md">
         <q-card-section>
-          <div class="row items-center justify-between q-mb-lg">
-            <div class="text-h5 text-weight-bold">{{ gymData.name || 'Detail Informasi Gym' }}</div>
-            <q-btn
-              unelevated
-              label="Edit Info Gym"
-              icon="edit"
-              color="primary"
-              no-caps
-              class="rounded-borders q-px-md"
-              @click="editInfo"
-            />
+          <!-- Header (lebih responsive) -->
+          <div class="row items-center q-col-gutter-sm q-mb-lg">
+            <div class="col-12 col-sm">
+              <q-badge
+                v-if="gymData.verified"
+                :color="gymData.verified === 'APPROVED' ? 'green-7' : 'orange-8'"
+                class="verify-badge"
+              >
+                {{ gymData.verified }}
+              </q-badge>
+
+              <div class="text-h5 text-weight-bold">
+                {{ gymData.name || 'Detail Informasi Gym' }}
+              </div>
+            </div>
+
+            <div class="col-12 col-sm-auto">
+              <q-btn
+                unelevated
+                label="Edit Info Gym"
+                icon="edit"
+                color="primary"
+                no-caps
+                class="rounded-borders q-px-md header-action"
+                @click="editInfo"
+              />
+            </div>
           </div>
 
+          <!-- Carousel (height responsive) -->
           <q-carousel
             v-if="gymData.gymImage && gymData.gymImage.length > 0"
             animated
@@ -80,8 +97,7 @@
             swipeable
             thumbnails
             infinite
-            class="rounded-borders shadow-1 q-mb-lg"
-            height="400px"
+            class="gym-carousel rounded-borders shadow-1 q-mb-lg"
           >
             <q-carousel-slide
               v-for="(img, index) in gymData.gymImage"
@@ -93,42 +109,27 @@
 
           <div class="row q-col-gutter-xl">
             <div class="col-12 col-md-7">
+              <div v-if="gymDescription" class="info-block">
+                <div class="text-subtitle2 text-weight-bold q-mb-sm">Deskripsi</div>
+                <div class="text-body2 description-text">{{ gymDescription }}</div>
+              </div>
               <div class="q-gutter-y-md">
                 <div class="info-block">
-                  <div
-                    class="text-subtitle2 text-weight-bold text-grey-7 q-mb-xs uppercase tracking-widest"
-                  >
-                    Alamat
-                  </div>
+                  <div class="text-subtitle2 text-weight-bold q-mb-sm">Alamat</div>
                   <div class="text-body1">{{ gymData.address || '-' }}</div>
                 </div>
+
                 <div class="row q-col-gutter-md">
                   <div class="col-6">
                     <div class="info-block">
-                      <div class="text-subtitle2 text-weight-bold text-grey-7 q-mb-xs uppercase">
-                        Kapasitas
-                      </div>
+                      <div class="text-subtitle2 text-weight-bold q-mb-sm">Kapasitas</div>
                       <div class="text-body1">{{ gymData.maxCapacity }} Orang</div>
                     </div>
                   </div>
-                  <div class="col-6">
-                    <div class="info-block">
-                      <div class="text-subtitle2 text-weight-bold text-grey-7 q-mb-xs uppercase">
-                        Verifikasi
-                      </div>
-                      <q-badge
-                        :color="gymData.verified === 'APPROVED' ? 'green-7' : 'orange-8'"
-                        class="q-pa-xs px-sm"
-                      >
-                        {{ gymData.verified }}
-                      </q-badge>
-                    </div>
-                  </div>
                 </div>
+
                 <div class="info-block">
-                  <div class="text-subtitle2 text-weight-bold text-grey-7 q-mb-xs uppercase">
-                    Jam Operasional
-                  </div>
+                  <div class="text-subtitle2 text-weight-bold q-mb-sm">Jam Operasional</div>
                   <div class="text-body1">{{ gymData.jamOperasional || '-' }}</div>
                 </div>
               </div>
@@ -136,26 +137,29 @@
 
             <div class="col-12 col-md-5">
               <div class="text-subtitle2 text-weight-bold q-mb-sm">Fasilitas Utama</div>
-              <div class="row q-gutter-xs q-mb-lg">
+              <div class="row q-gutter-xs q-mb-lg chip-wrap">
                 <q-chip
                   v-for="fac in gymData.facility"
                   :key="fac"
                   outline
                   color="black"
                   icon="check_circle"
-                  >{{ fac }}</q-chip
                 >
+                  {{ fac }}
+                </q-chip>
               </div>
+
               <div class="text-subtitle2 text-weight-bold q-mb-sm">Tags</div>
-              <div class="row q-gutter-xs">
+              <div class="row q-gutter-xs chip-wrap">
                 <q-chip
                   v-for="tag in formattedTags"
                   :key="tag"
                   color="black"
                   text-color="white"
                   square
-                  >{{ tag }}</q-chip
                 >
+                  {{ tag }}
+                </q-chip>
               </div>
             </div>
           </div>
@@ -347,6 +351,12 @@ const formattedTags = computed(() => {
   return t ? t.split(',').map((s) => s.trim()) : []
 })
 
+const gymDescription = computed(() => {
+  // dukung 2 kemungkinan nama field
+  const d = gymData.value.description ?? gymData.value.deskripsi ?? ''
+  return String(d).trim()
+})
+
 const equipmentColumns = [
   { name: 'name', label: 'Nama Alat', field: 'name', align: 'left', sortable: true },
   { name: 'healthStatus', label: 'Status Kondisi', field: 'healthStatus', align: 'center' },
@@ -486,5 +496,4 @@ const editInfo = () => router.push('/info/edit')
     border-radius: 10px;
   }
 }
-
 </style>

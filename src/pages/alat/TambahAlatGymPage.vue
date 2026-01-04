@@ -56,6 +56,36 @@
               </template>
             </q-input>
           </div>
+
+          <div class="col-12">
+            <div class="text-subtitle2 q-mb-xs text-weight-bold text-grey-9">Deskripsi</div>
+            <q-input
+              outlined
+              dense
+              type="textarea"
+              autogrow
+              v-model="newEquipment.description"
+              placeholder="Contoh: latihan punggung biar postur lebih tegak..."
+              class="custom-input"
+            />
+          </div>
+
+          <div class="col-12">
+            <div class="text-subtitle2 q-mb-xs text-weight-bold text-grey-9">Foto</div>
+            <q-file
+              outlined
+              dense
+              v-model="newEquipment.image"
+              accept="image/*"
+              label="Upload foto alat"
+              class="custom-input"
+              clearable
+            >
+              <template v-slot:prepend>
+                <q-icon name="image" />
+              </template>
+            </q-file>
+          </div>
         </div>
 
         <q-separator class="q-my-xl" />
@@ -94,6 +124,8 @@ const newEquipment = reactive({
   name: '',
   qty: 1,
   videoUrl: '',
+  description: '',
+  image: null,
 })
 
 const submitEquipment = async () => {
@@ -114,6 +146,8 @@ const submitEquipment = async () => {
       name: newEquipment.name,
       qty: parseInt(newEquipment.qty),
       videoUrl: newEquipment.videoUrl,
+      description: newEquipment.description,
+      image: newEquipment.image,
     })
 
     $q.notify({
@@ -135,7 +169,6 @@ const submitEquipment = async () => {
 }
 
 const goBack = () => router.back()
-
 </script>
 
 <style scoped lang="scss">

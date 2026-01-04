@@ -26,12 +26,22 @@ export const useEquipmentStore = defineStore('equipment', {
     async createEquipment(gymId, data) {
       try {
         this.loading = true
-        const payload = {
-          name: data.name,
-          videoURL: data.videoUrl,
-          jumlah: Number(data.qty),
-        }
-        const response = await api.post(`/api/v1/gym/${gymId}/equipment`, payload)
+
+        const fd = new FormData()
+        fd.append('name', data.name)
+        fd.append('videoURL', data.videoUrl || '') // sesuai key backend: videoURL
+        fd.append('jum', String(Number(data.qty || 0))) // sesuai key backend: jum
+        fd.append('description', data.description || '') // sesuai key backend: description
+
+        // image OPTIONAL
+        // kalau q-file kamu mengembalikan array, ambil index 0
+        const file = Array.isArray(data.image) ? data.image[0] : data.image
+        if (file) fd.append('image', file) // sesuai key backend: image
+
+        const response = await api.post(`/api/v1/gym/${gymId}/equipment`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        })
+
         return response.data
       } catch (error) {
         console.error('Error creating equipment:', error)
