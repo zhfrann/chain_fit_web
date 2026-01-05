@@ -407,17 +407,37 @@ const editPlan = (plan) => {
 
 const submitNewPlan = async () => {
   const gymId = gymStore.selectedGymId
+
   try {
-    const cleanedBenefits = newPlan.benefit.filter((b) => b.trim() !== '')
+    const cleanedBenefits = newPlan.benefit.filter(b => b.trim() !== '')
+
     if (editingPlanId.value) {
-      await packageStore.updatePlanBenefit(gymId, editingPlanId.value, cleanedBenefits)
+      await packageStore.updatePlanBenefit(
+        gymId,
+        editingPlanId.value,
+        cleanedBenefits
+      )
     } else {
-      await packageStore.createPlan(gymId, { ...newPlan, benefit: cleanedBenefits })
+      await packageStore.createPlan(
+        gymId,
+        { ...newPlan, benefit: cleanedBenefits }
+      )
     }
+
+    // 🔥 INI KUNCINYA
+    await packageStore.fetchPlans(gymId)
+
     showAddDialog.value = false
-    $q.notify({ type: 'positive', message: 'Data paket diperbarui' })
-  } catch {
-    $q.notify({ type: 'negative', message: 'Gagal memproses paket' })
+    $q.notify({
+      type: 'positive',
+      message: 'Data paket berhasil diperbarui'
+    })
+  } catch (err) {
+    console.error(err)
+    $q.notify({
+      type: 'negative',
+      message: 'Gagal memproses paket'
+    })
   }
 }
 
@@ -429,6 +449,7 @@ const confirmDeletePlan = (plan) => {
     ok: { color: 'red-9', label: 'Hapus', unelevated: true },
   }).onOk(async () => {
     await packageStore.deletePlan(gymStore.selectedGymId, plan.id)
+    await packageStore.fetchPlans(gymStore.selectedGymId)
     $q.notify({ type: 'positive', message: 'Paket dihapus' })
   })
 }

@@ -2,7 +2,9 @@
   <q-page class="q-pa-lg bg-grey-2">
     <q-card flat class="rounded-borders shadow-1 custom-card">
       <q-card-section class="q-pa-xl">
-        <div class="text-h5 text-center text-weight-bolder q-mb-xl">Tambah Anggota</div>
+        <div class="text-h5 text-center text-weight-bolder q-mb-xl">
+          Tambah Anggota
+        </div>
 
         <div class="row q-col-gutter-x-md q-col-gutter-y-lg">
           <div class="col-12 col-sm-6">
@@ -12,12 +14,13 @@
               dense
               v-model="form.nama"
               placeholder="Masukkan nama anggota"
-              class="custom-input"
               :error="!!errors.nama"
               :error-message="errors.nama"
-              @input="errors.nama = ''"
+              @update:model-value="errors.nama = ''"
             />
           </div>
+
+          <!-- Email -->
           <div class="col-12 col-sm-6">
             <div class="text-weight-bold q-mb-sm">Email</div>
             <q-input
@@ -25,17 +28,21 @@
               dense
               v-model="form.email"
               placeholder="Masukkan email anggota"
-              class="custom-input"
               :error="!!errors.email"
               :error-message="errors.email"
-              @input="errors.email = ''"
+              @update:model-value="errors.email = ''"
             />
           </div>
 
           <div class="col-12">
             <div class="text-weight-bold q-mb-md">Paket Gym</div>
+
             <div class="row q-col-gutter-md">
-              <div v-for="paket in paketOptions" :key="paket.id" class="col-12 col-sm-4">
+              <div
+                v-for="paket in paketOptions"
+                :key="paket.id"
+                class="col-12 col-sm-4"
+              >
                 <q-card
                   flat
                   bordered
@@ -45,19 +52,24 @@
                 >
                   <q-card-section class="row items-center no-wrap">
                     <div class="col">
-                      <div class="text-h6 text-weight-bolder">{{ paket.nama }}</div>
+                      <div class="text-h6 text-weight-bolder">
+                        {{ paket.nama }}
+                      </div>
                       <div class="text-caption text-weight-bold">
                         Rp {{ paket.harga.toLocaleString() }}
                       </div>
                     </div>
                     <div class="col-auto text-right">
-                      <span class="text-h4 text-weight-bolder">{{ paket.durasi }}</span>
-                      <span class="text-caption">/hari</span>
+                      <span class="text-h4 text-weight-bolder">
+                        {{ paket.durasi }}
+                      </span>
+                      <span class="text-caption"> hari</span>
                     </div>
                   </q-card-section>
                 </q-card>
               </div>
             </div>
+
             <div v-if="errors.selectedPaket" class="error-text q-mt-sm">
               {{ errors.selectedPaket }}
             </div>
@@ -65,8 +77,20 @@
         </div>
 
         <div class="row justify-end q-mt-xl q-gutter-sm">
-          <q-btn unelevated no-caps label="Batal" class="btn-batal q-px-lg" @click="goBack" />
-          <q-btn unelevated no-caps class="btn-tambah q-px-xl" label="Tambah" @click="submitForm" />
+          <q-btn
+            unelevated
+            no-caps
+            label="Batal"
+            class="btn-batal q-px-lg"
+            @click="goBack"
+          />
+          <q-btn
+            unelevated
+            no-caps
+            label="Tambah"
+            class="btn-tambah q-px-xl"
+            @click="submitForm"
+          />
         </div>
       </q-card-section>
     </q-card>
@@ -74,47 +98,53 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
-import { useGymStore } from 'src/stores/Gym'
-import { usePackageStore } from 'src/stores/Package'
 import { storeToRefs } from 'pinia'
 import { api } from 'src/boot/axios'
 
+import { useGymStore } from 'src/stores/Gym'
+import { usePackageStore } from 'src/stores/Package'
+
 const $q = useQuasar()
+const router = useRouter()
+
 const gymStore = useGymStore()
 const packageStore = usePackageStore()
 const { subscriptionPlans } = storeToRefs(packageStore)
-const gymId = computed(() => gymStore.selectedGymId)
-const router = useRouter()
-const form = ref({ nama: '', email: '', selectedPaket: null })
 
+const gymId = computed(() => gymStore.selectedGymId)
+
+// Form data and errors
+const form = ref({
+  nama: '',
+  email: '',
+  selectedPaket: null
+})
+
+// Validation errors
 const errors = reactive({
   nama: '',
   email: '',
-  selectedPaket: '',
+  selectedPaket: ''
 })
 
-const paketOptions = computed(() =>
-  subscriptionPlans.value.map(p => ({
-    id: p.id,
-    nama: p.name,
-    harga: Number(p.price),
-    durasi: p.durationDays
-  }))
-)
-
+// Fetch subscription plans on mount
 onMounted(async () => {
   if (!gymId.value) {
-    console.warn('Gym ID belum tersedia')
+    $q.notify({
+      type: 'negative',
+      message: 'Gym belum dipilih. Silakan daftar atau pilih gym terlebih dahulu.'
+    })
+    router.push('/daftar-gym')
     return
   }
 
   try {
     await packageStore.fetchPlans(gymId.value)
   } catch (err) {
-    console.error('Gagal mengambil paket:', err)
+    console.error(err)
     $q.notify({
       type: 'negative',
       message: 'Gagal memuat paket gym'
@@ -122,24 +152,45 @@ onMounted(async () => {
   }
 })
 
+// Computed paket options
+const paketOptions = computed(() =>
+  (subscriptionPlans.value || []).map(p => ({
+    id: p.id,
+    nama: p.name,
+    harga: Number(p.price),
+    durasi: p.durationDays
+  }))
+)
+
+// Navigation and form handlers
 const goBack = () => {
   router.push('/anggota')
 }
 
+// Select paket
 const selectPaket = (id) => {
   form.value.selectedPaket = id
   errors.selectedPaket = ''
 }
 
+// Email validation
 const validateEmail = (email) => {
-  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-  return re.test(String(email).toLowerCase())
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
+// Submit form
 const submitForm = async () => {
   errors.nama = ''
   errors.email = ''
   errors.selectedPaket = ''
+
+  if (!gymId.value) {
+    $q.notify({
+      type: 'negative',
+      message: 'Gym ID tidak ditemukan'
+    })
+    return
+  }
 
   if (!form.value.nama.trim()) {
     errors.nama = 'Nama wajib diisi'
@@ -152,7 +203,7 @@ const submitForm = async () => {
   }
 
   if (!validateEmail(form.value.email)) {
-    errors.email = 'Email tidak valid'
+    errors.email = 'Format email tidak valid'
     return
   }
 
@@ -173,29 +224,22 @@ const submitForm = async () => {
       message: 'Anggota berhasil ditambahkan'
     })
 
-    router.push('//anggota')
+    router.push('/anggota')
   } catch (err) {
     console.error(err)
     $q.notify({
       type: 'negative',
-      message: err.response?.data?.errors?.message || 'Gagal menambah anggota'
+      message: err.response?.data?.message || 'Gagal menambah anggota'
     })
   }
 }
-
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 .custom-card {
   border-radius: 15px;
   max-width: 1000px;
   margin: 0 auto;
-}
-
-.custom-input :deep(.q-field__control) {
-  border-radius: 10px;
-  background-color: white;
-  border: 1.5px solid #000;
 }
 
 .paket-card {
@@ -207,11 +251,11 @@ const submitForm = async () => {
 
 .paket-selected {
   background-color: #475569;
-  border-color: #0c0c0c;
+  border-color: #000;
 }
 
 .btn-tambah {
-  background-color: #0c0c0c;
+  background-color: #000;
   color: white;
   border-radius: 10px;
   font-weight: bold;
@@ -224,7 +268,6 @@ const submitForm = async () => {
   border-radius: 10px;
   font-weight: bold;
   height: 44px;
-  text-transform: none;
 }
 
 .error-text {
@@ -232,5 +275,11 @@ const submitForm = async () => {
   font-size: 13px;
   font-weight: 600;
 }
-
 </style>
+
+
+
+
+
+
+
